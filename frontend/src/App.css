@@ -1,0 +1,12 @@
+.footer {
+    color: #666;
+    font-size: 0.9rem;
+    background-color: #f5f5f5; /* หรือใช้ background สีอ่อน ๆ */
+    border-top: 1px solid #ddd;
+  }
+
+  .card-img-top {
+    object-fit: cover;
+  }
+  
+  
