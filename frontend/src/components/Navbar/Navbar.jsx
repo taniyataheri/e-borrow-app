@@ -119,7 +119,7 @@ const Navbar = () => {
       <Transition show={isOpen} enter="transition-enter" enterFrom="transition-enter-from" enterTo="transition-enter-to" leave="transition-leave" leaveFrom="transition-leave-from" leaveTo="transition-leave-to">
         <div className="mobile-menu mobile">
         {role === 2 ? (
-            <ul className="nav flex-row w-100">
+            <ul className="nav flex-column w-100">
               <li className="nav-item">
                 <Link className={`nav-link ${getLinkClass("/Home")}`} to="/Home">
                   หน้าหลัก
@@ -147,7 +147,7 @@ const Navbar = () => {
               </li>
             </ul>
           ) : role === 1 ? (
-            <ul className="nav flex-row w-100">
+            <ul className="nav flex-column w-100">
               <li className="nav-item">
                 <Link className={`nav-link ${getLinkClass("/Home")}`} to="/Home">
                   หน้าหลัก

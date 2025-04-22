@@ -229,7 +229,7 @@ const handleOpenCancelModal = (request) => {
 
 
 const filteredHistory = history.filter((his) => {
-  console.log(his); // ✅ ตรวจสอบว่าข้อมูลมาครบไหม
+  // console.log(his); // ✅ ตรวจสอบว่าข้อมูลมาครบไหม
   const allowedStatuses = ["รอการอนุมัติ", "อนุมัติแล้ว", "รับของแล้ว"];
   const matchStatus = allowedStatuses.includes(his.status_name);
 
@@ -272,7 +272,6 @@ const filteredHistory = history.filter((his) => {
     });
   };
 
-
   const handleConfirmReturn = () => {
     if (!currentReturn) return;
   
@@ -293,39 +292,84 @@ const filteredHistory = history.filter((his) => {
       Swal.fire("คำขอไม่ถูกต้อง", "กรุณากรอกชื่อผู้รับคืน", "warning");
       return;
     }
-  
-    axios.post("http://localhost:3001/return-detail", {
-      request_id: currentReturn.request_id,
-      product_id: currentReturn.product_id,
-      good_qty: parseInt(returnGoodQty),
-      damaged_qty: parseInt(returnDamagedQty),
-      lost_qty: parseInt(returnLostQty),
-      fine_amount: calculateFine(),
-      note: returnComment,
-      returned_by: returnedName, // 👈 ส่งชื่อแทน user.id
-      received_by: receiverName,
-    }, {
-      headers: { Authorization: token }
-    }).then(() => {
-      Swal.fire("สำเร็จ", "บันทึกการคืนเรียบร้อยแล้ว", "success");
-  
-      setShowReceiveModal(false);
-      setReturnGoodQty(0);
-      setReturnDamagedQty(0);
-      setReturnLostQty(0);
-      setReturnComment("");
-      setReceiverName("");
-      setReturnedName("");
-      setCurrentReturn(null);
-      role === 1 ? fetchBorrow() : fetchBorrowMember(user.id);
-    }).catch((err) => {
-      console.error("Error:", err);
-      if (err.response) {
-        Swal.fire("ผิดพลาด", err.response.data || "ไม่สามารถบันทึกได้", "error");
-      } else {
-        Swal.fire("ข้อผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้", "error");
+   // 🔔 แสดง SweetAlert2 แบบยืนยันก่อน
+    Swal.fire({
+      title: "ยืนยันการคืนของ?",
+      text: "คุณแน่ใจหรือไม่ว่าต้องการยืนยันการคืนของรายการนี้",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "ยืนยัน",
+      cancelButtonText: "ยกเลิก"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // ✅ ถ้าผู้ใช้กดยืนยัน ค่อยส่ง axios
+        axios.post("http://localhost:3001/return-detail", {
+          request_id: currentReturn.request_id,
+          product_id: currentReturn.product_id,
+          good_qty: parseInt(returnGoodQty),
+          damaged_qty: parseInt(returnDamagedQty),
+          lost_qty: parseInt(returnLostQty),
+          fine_amount: calculateFine(),
+          note: returnComment,
+          returned_by: returnedName,
+          received_by: receiverName,
+        }, {
+          headers: { Authorization: token }
+        }).then(() => {
+          Swal.fire("สำเร็จ", "บันทึกการคืนเรียบร้อยแล้ว", "success");
+
+          setShowReturnModal(false);
+          setReturnGoodQty(0);
+          setReturnDamagedQty(0);
+          setReturnLostQty(0);
+          setReturnComment("");
+          setReceiverName("");
+          setReturnedName("");
+          setCurrentReturn(null);
+
+          role === 1 ? fetchBorrow() : fetchBorrowMember(user.id);
+        }).catch((err) => {
+          console.error("Error:", err);
+          if (err.response) {
+            Swal.fire("ผิดพลาด", err.response.data || "ไม่สามารถบันทึกได้", "error");
+          } else {
+            Swal.fire("ข้อผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้", "error");
+          }
+        });
       }
     });
+    // axios.post("http://localhost:3001/return-detail", {
+    //   request_id: currentReturn.request_id,
+    //   product_id: currentReturn.product_id,
+    //   good_qty: parseInt(returnGoodQty),
+    //   damaged_qty: parseInt(returnDamagedQty),
+    //   lost_qty: parseInt(returnLostQty),
+    //   fine_amount: calculateFine(),
+    //   note: returnComment,
+    //   returned_by: returnedName, // 👈 ส่งชื่อแทน user.id
+    //   received_by: receiverName,
+    // }, {
+    //   headers: { Authorization: token }
+    // }).then(() => {
+    //   Swal.fire("สำเร็จ", "บันทึกการคืนเรียบร้อยแล้ว", "success");
+  
+    //   setShowReturnModal(false);
+    //   setReturnGoodQty(0);
+    //   setReturnDamagedQty(0);
+    //   setReturnLostQty(0);
+    //   setReturnComment("");
+    //   setReceiverName("");
+    //   setReturnedName("");
+    //   setCurrentReturn(null);
+    //   role === 1 ? fetchBorrow() : fetchBorrowMember(user.id);
+    // }).catch((err) => {
+    //   console.error("Error:", err);
+    //   if (err.response) {
+    //     Swal.fire("ผิดพลาด", err.response.data || "ไม่สามารถบันทึกได้", "error");
+    //   } else {
+    //     Swal.fire("ข้อผิดพลาด", "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้", "error");
+    //   }
+    // });
   };
   
   
@@ -476,7 +520,7 @@ const filteredHistory = history.filter((his) => {
                             <Button
                               variant="warning"
                               className="w-100 my-1 text-white"
-                              onClick={() => updateStatus(r.request_id, "รับของแล้ว", 0, r.product_id)}
+                              onClick={() => updateStatus(r.request_id, "รับของแล้ว", r.product_id)}
                             >
                               ยืนยันการรับของ
                             </Button>
