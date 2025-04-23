@@ -47,28 +47,57 @@ app.get("/categories", (req, res) => {
 
 // เพิ่มข้อมูล product
 app.post("/products", (req, res) => {
-  const { name, color, qta, size, price_per_item, category_id, status_for_admin, status_for_user, image } = req.body;
+  const {
+    name,
+    color,
+    qta,
+    size,
+    price_per_item,
+    category_id,
+    status_for_admin,
+    status_for_user,
+    image,
+  } = req.body;
 
-  db.query("INSERT INTO product (name, color, quantity, size, price_per_item, category_id, status_for_admin, status_for_user, image) VALUES (?,?,?,?,?,?,?,?,?)", [name, color, qta, size, price_per_item, category_id, status_for_admin, status_for_user, image], (err, results) => {
-    if (err) {
-      res.status(500).send(err);
-    } else {
-      res.json({ message: "เพิ่มทรัพย์สินสำเร็จ!!!", id: results.insertId });
+  db.query(
+    "INSERT INTO product (name, color, quantity, size, price_per_item, category_id, status_for_admin, status_for_user, image) VALUES (?,?,?,?,?,?,?,?,?)",
+    [
+      name,
+      color,
+      qta,
+      size,
+      price_per_item,
+      category_id,
+      status_for_admin,
+      status_for_user,
+      image,
+    ],
+    (err, results) => {
+      if (err) {
+        res.status(500).send(err);
+      } else {
+        res.json({ message: "เพิ่มทรัพย์สินสำเร็จ!!!", id: results.insertId });
+      }
     }
-  });
+  );
 });
 
 // อัปเดตข้อมูล product
 app.put("/products/:id", (req, res) => {
   const { id } = req.params;
-  const { name, color, qta, size, price, category_id, status, image } = req.body;
-  db.query("UPDATE product SET name = ?, color = ?, quantity = ?, size = ?, price_per_item = ?, category_id = ?, status = ?, image = ? WHERE product_id = ?", [name, color, qta, size, price, category_id, status, image, id], (err, results) => {
-    if (err) {
-      res.status(500).send(err);
-    } else {
-      res.json({ message: "อัปเดตทรัพย์สินสำเร็จ!!!" });
+  const { name, color, qta, size, price, category_id, status, image } =
+    req.body;
+  db.query(
+    "UPDATE product SET name = ?, color = ?, quantity = ?, size = ?, price_per_item = ?, category_id = ?, status = ?, image = ? WHERE product_id = ?",
+    [name, color, qta, size, price, category_id, status, image, id],
+    (err, results) => {
+      if (err) {
+        res.status(500).send(err);
+      } else {
+        res.json({ message: "อัปเดตทรัพย์สินสำเร็จ!!!" });
+      }
     }
-  });
+  );
 });
 
 // ลบข้อมูล product
@@ -85,46 +114,84 @@ app.delete("/products/:id", (req, res) => {
 
 // ฟังก์ชันสร้าง ID ใหม่
 const generateNewId = (team, callback) => {
-  db.query("SELECT CAST(REGEXP_REPLACE(member_id, '[^0-9]', '') AS UNSIGNED) AS numeric_part FROM members WHERE member_id LIKE ? AND role_id = 2 ORDER BY numeric_part DESC LIMIT 1", [`${team}%`], (err, results) => {
-    if (err) {
-      callback(err, null);
-      return;
-    }
+  db.query(
+    "SELECT CAST(REGEXP_REPLACE(member_id, '[^0-9]', '') AS UNSIGNED) AS numeric_part FROM members WHERE member_id LIKE ? AND role_id = 2 ORDER BY numeric_part DESC LIMIT 1",
+    [`${team}%`],
+    (err, results) => {
+      if (err) {
+        callback(err, null);
+        return;
+      }
 
-    if (!results || results.length === 0 || !results[0].numeric_part) {
-      // ถ้ายังไม่มี id ของทีมนี้ ให้เริ่มจาก 1
-      callback(null, `${team}1`);
-    } else {
-      // ดึงเลขท้ายสุดมา +1
-      const lastId = results[0].numeric_part;
-      const lastNumber = parseInt(lastId) + 1;
-      const newId = `${team}${String(lastNumber)}`;
-      callback(null, newId);
+      if (!results || results.length === 0 || !results[0].numeric_part) {
+        // ถ้ายังไม่มี id ของทีมนี้ ให้เริ่มจาก 1
+        callback(null, `${team}1`);
+      } else {
+        // ดึงเลขท้ายสุดมา +1
+        const lastId = results[0].numeric_part;
+        const lastNumber = parseInt(lastId) + 1;
+        const newId = `${team}${String(lastNumber)}`;
+        callback(null, newId);
+      }
     }
-  });
+  );
 };
 
 // เพิ่มข้อมูล user
 app.post("/users", async (req, res) => {
   try {
-    const { first_name, last_name, prefix_name, email, team, phone, birthDate, username, password, role_id } = req.body;
+    const {
+      first_name,
+      last_name,
+      prefix_name,
+      email,
+      team,
+      phone,
+      birthDate,
+      username,
+      password,
+      role_id,
+    } = req.body;
 
-    db.query("SELECT * FROM members WHERE email = ? OR username = ?", [email, username], (err, results) => {
-      if (err) return res.status(500).send(err);
-      if (results.length > 0) return res.status(400).json({ message: "อีเมลหรือชื่อผู้ใช้งานนี้ถูกใช้แล้ว" });
-    });
+    db.query(
+      "SELECT * FROM members WHERE email = ? OR username = ?",
+      [email, username],
+      (err, results) => {
+        if (err) return res.status(500).send(err);
+        if (results.length > 0)
+          return res
+            .status(400)
+            .json({ message: "อีเมลหรือชื่อผู้ใช้งานนี้ถูกใช้แล้ว" });
+      }
+    );
 
     generateNewId(team, (err, newId) => {
       if (err) {
         return res.status(500).send(err);
       }
 
-      db.query("INSERT INTO members (member_id, first_name, last_name, prefix_name, email, team, phone_number, brithday, username, password, role_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)", [newId, first_name, last_name, prefix_name, email, team, phone, birthDate, username, password, role_id], (err, results) => {
-        if (err) {
-          return res.status(500).send(err);
+      db.query(
+        "INSERT INTO members (member_id, first_name, last_name, prefix_name, email, team, phone_number, brithday, username, password, role_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+        [
+          newId,
+          first_name,
+          last_name,
+          prefix_name,
+          email,
+          team,
+          phone,
+          birthDate,
+          username,
+          password,
+          role_id,
+        ],
+        (err, results) => {
+          if (err) {
+            return res.status(500).send(err);
+          }
+          res.json({ message: "เพิ่มสมาชิกสำเร็จ!!!", id: newId });
         }
-        res.json({ message: "เพิ่มสมาชิกสำเร็จ!!!", id: newId });
-      });
+      );
     });
   } catch (err) {
     console.error(err);
@@ -138,13 +205,23 @@ app.post("/login", (req, res) => {
 
   db.query("SELECT * FROM members WHERE email = ?", [email], (err, results) => {
     if (err) return res.status(500).send(err);
-    if (!results || results.length === 0) return res.status(401).json({ message: "Invalid email or password" });
+    if (!results || results.length === 0)
+      return res.status(401).json({ message: "Invalid email or password" });
 
     const user = results[0];
 
     // ตรวจสอบรหัสผ่าน
     if (password === user.password) {
-      const token = jwt.sign({ id: user.member_id, email: user.email, team: user.team, role: user.role_id }, "mysecretkey123", { expiresIn: "1h" });
+      const token = jwt.sign(
+        {
+          id: user.member_id,
+          email: user.email,
+          team: user.team,
+          role: user.role_id,
+        },
+        "mysecretkey123",
+        { expiresIn: "1h" }
+      );
       res.json({ message: "Login successful", token, user });
     } else {
       res.status(401).json({ message: "Invalid email or password" });
@@ -220,96 +297,132 @@ app.get("/borrow", verifyToken, (req, res) => {
     SELECT
       b.request_id,
       b.member_id,
-      m.full_name,
-      m.first_name,
-      m.last_name,
-      m.team,
-      p.product_id,
-      p.name AS product_name,
       b.quantity,
       b.request_date,
       b.due_return_date,
       b.return_date,
       b.note,
-      p.price_per_item,
-      IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
-      rd.latest_return_date,
-      rd.returned_good,
-      rd.returned_damaged,
-      rd.returned_lost,
-      rd.return_note,
-      (
-          b.quantity -(
-              IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)
-          )
-      ) AS total,
-      (
-          IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)
-      ) AS total_return
+      s.status_name
     FROM
         borrow_request b
-    LEFT JOIN members m ON
-        b.member_id = m.member_id
-    LEFT JOIN product p ON
-        b.product_id = p.product_id
     LEFT JOIN borrow_request_status s ON
-        b.request_id = s.request_id
-    LEFT JOIN(
-        SELECT request_id,
-            MAX(return_date) AS latest_return_date,
-            SUM(IFNULL(returned_good, 0)) AS returned_good,
-            SUM(IFNULL(returned_damaged, 0)) AS returned_damaged,
-            SUM(IFNULL(returned_lost, 0)) AS returned_lost,
-            GROUP_CONCAT(note SEPARATOR ', ') AS return_note
-        FROM
-            return_detail
-        GROUP BY
-            request_id
-    ) rd
-    ON
-    b.request_id = rd.request_id;
+        b.request_id = s.request_id;
   `;
-  // const sql = `
-  //   SELECT
-  //     b.request_id,
-  //     b.member_id,
-  //     m.full_name,
-  //     m.first_name,
-  //     m.last_name,
-  //     m.team,
-  //     p.product_id,
-  //     p.name AS product_name,
-  //     b.quantity,
-  //     b.request_date,
-  //     b.due_return_date,
-  //     b.return_date,
-  //     b.note,
-  //     p.price_per_item,
-  //     IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
-  //     rd.return_date AS latest_return_date,
-  //     rd.returned_good,
-  //     rd.returned_damaged,
-  //     rd.returned_lost,
-  //     rd.note AS return_note,
-  //     (b.quantity - (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0))) AS total,
-  //     (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)) AS total_return
-  //   FROM
-  //     borrow_request b
-  //     LEFT JOIN members m ON b.member_id = m.member_id
-  //     LEFT JOIN product p ON b.product_id = p.product_id
-  //     LEFT JOIN borrow_request_status s ON b.request_id = s.request_id
-  //     LEFT JOIN return_detail rd ON b.request_id = rd.request_id
-  //   ORDER BY
-  //     b.request_id DESC;
-  // `;
+  
 
   db.query(sql, (err, results) => {
     if (err) {
       console.error("Error fetching borrow requests:", err);
       return res.status(500).json({ error: "Server error" });
     }
-    res.json(results);
+  
+    // ตรวจสอบว่ามีข้อมูลที่เกินกำหนดหรือไม่
+    const overdueRequests = results.filter(r => new Date(r.due_return_date) < new Date());
+  
+    if (overdueRequests.length > 0) {
+      // อัพเดทสถานะเป็น 'เกินกำหนด' สำหรับรายการที่เกินกำหนด
+      const overdueDateQuery = `UPDATE borrow_request_status SET status_name = 'เลยกำหนดคืน' WHERE request_id IN (${overdueRequests.map(r => r.request_id).join(",")})`;
+      db.query(overdueDateQuery, (err) => {
+        if (err) {
+          console.error("Error updating overdue status:", err);
+          return res.status(500).json({ error: "Server error" });
+        }
+  
+        // ถ้ามีการอัพเดทให้แสดงผลข้อมูลทั้งหมดที่เกี่ยวข้อง
+        const sql = `
+          SELECT
+            b.request_id,
+            b.member_id,
+            m.full_name,
+            m.first_name,
+            m.last_name,
+            m.team,
+            p.product_id,
+            p.name AS product_name,
+            b.quantity,
+            b.request_date,
+            b.due_return_date,
+            b.return_date,
+            b.note,
+            p.price_per_item,
+            IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
+            rd.return_date AS latest_return_date,
+            rd.returned_good,
+            rd.returned_damaged,
+            rd.returned_lost,
+            rd.note AS return_note,
+            (b.quantity - (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0))) AS total,
+            (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)) AS total_return
+          FROM
+            borrow_request b
+            LEFT JOIN members m ON b.member_id = m.member_id
+            LEFT JOIN product p ON b.product_id = p.product_id
+            LEFT JOIN borrow_request_status s ON b.request_id = s.request_id
+            LEFT JOIN return_detail rd ON b.request_id = rd.request_id
+          ORDER BY
+            b.request_id DESC;
+        `;
+        
+        // ดำเนินการ select ข้อมูล
+        db.query(sql, (err, data) => {
+          if (err) {
+            console.error("Error fetching updated borrow request data:", err);
+            return res.status(500).json({ error: "Server error" });
+          }
+  
+          // ส่งข้อมูลกลับไปใน response
+          return res.json(data);
+        });
+      });
+    } else {
+      // หากไม่มีข้อมูลที่เกินกำหนด ให้แสดงข้อมูลที่มีอยู่
+      const sql = `
+        SELECT
+          b.request_id,
+          b.member_id,
+          m.full_name,
+          m.first_name,
+          m.last_name,
+          m.team,
+          p.product_id,
+          p.name AS product_name,
+          b.quantity,
+          b.request_date,
+          b.due_return_date,
+          b.return_date,
+          b.note,
+          p.price_per_item,
+          IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
+          rd.return_date AS latest_return_date,
+          rd.returned_good,
+          rd.returned_damaged,
+          rd.returned_lost,
+          rd.note AS return_note,
+          (b.quantity - (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0))) AS total,
+          (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)) AS total_return
+        FROM
+          borrow_request b
+          LEFT JOIN members m ON b.member_id = m.member_id
+          LEFT JOIN product p ON b.product_id = p.product_id
+          LEFT JOIN borrow_request_status s ON b.request_id = s.request_id
+          LEFT JOIN return_detail rd ON b.request_id = rd.request_id
+        ORDER BY
+          b.request_id DESC;
+      `;
+      
+      // ดำเนินการ select ข้อมูล
+      db.query(sql, (err, data) => {
+        if (err) {
+          console.error("Error fetching borrow request data:", err);
+          return res.status(500).json({ error: "Server error" });
+        }
+  
+        // ส่งข้อมูลกลับไปใน response
+        return res.json(data);
+      });
+    }
   });
+  
 });
 
 // ดึงข้อมูล borrow ของ member
@@ -412,7 +525,14 @@ app.get("/cancel-history", verifyToken, (req, res) => {
 });
 
 app.post("/borrow", (req, res) => {
-  const { member_id, product_id, quantity, request_date, due_return_date, note } = req.body;
+  const {
+    member_id,
+    product_id,
+    quantity,
+    request_date,
+    due_return_date,
+    note,
+  } = req.body;
 
   const insertBorrowSQL = `
     INSERT INTO borrow_request (
@@ -421,28 +541,32 @@ app.post("/borrow", (req, res) => {
     VALUES (?, ?, ?, ?, ?, ?)
   `;
 
-  db.query(insertBorrowSQL, [member_id, product_id, quantity, request_date, due_return_date, note], (err, result) => {
-    if (err) {
-      console.error("Insert borrow_request error:", err);
-      return res.status(500).send("ไม่สามารถบันทึกคำขอได้");
-    }
+  db.query(
+    insertBorrowSQL,
+    [member_id, product_id, quantity, request_date, due_return_date, note],
+    (err, result) => {
+      if (err) {
+        console.error("Insert borrow_request error:", err);
+        return res.status(500).send("ไม่สามารถบันทึกคำขอได้");
+      }
 
-    const requestId = result.insertId;
+      const requestId = result.insertId;
 
-    const insertStatusSQL = `
+      const insertStatusSQL = `
         INSERT INTO borrow_request_status (request_id, status_name)
         VALUES (?, 'รอการอนุมัติ')
       `;
 
-    db.query(insertStatusSQL, [requestId], (err2) => {
-      if (err2) {
-        console.error("Insert status error:", err2);
-        return res.status(500).send("ไม่สามารถบันทึกสถานะได้");
-      }
+      db.query(insertStatusSQL, [requestId], (err2) => {
+        if (err2) {
+          console.error("Insert status error:", err2);
+          return res.status(500).send("ไม่สามารถบันทึกสถานะได้");
+        }
 
-      res.status(200).json({ message: "ส่งคำขอสำเร็จ!" });
-    });
-  });
+        res.status(200).json({ message: "ส่งคำขอสำเร็จ!" });
+      });
+    }
+  );
 });
 
 // อัปเดตข้อมูล status borrow
@@ -451,46 +575,74 @@ app.put("/borrow/:id", (req, res) => {
   const { status_name, qta, product_id } = req.body;
 
   if (status_name === "ส่งคืนแล้ว") {
-    db.query("UPDATE borrow_request SET return_date = NOW() WHERE request_id = ?", [id], (err, results) => {
-      if (err) {
-        res.status(500).send;
+    db.query(
+      "UPDATE borrow_request SET return_date = NOW() WHERE request_id = ?",
+      [id],
+      (err, results) => {
+        if (err) {
+          res.status(500).send;
+        }
       }
-    });
-    db.query("UPDATE borrow_request_status SET status_name = ? WHERE request_id = ?", [status_name, id], (err, results) => {
-      if (err) {
-        res.status(500).send(err);
-      } else {
-        db.query("UPDATE product SET quantity = quantity + ? WHERE product_id = ?", [qta, product_id], (err, results_status) => {
-          if (err) {
-            res.status(500).send(err);
-          }
-        });
-        db.query("UPDATE product SET status = ? WHERE product_id = ? AND quantity > 0", ["พร้อมใช้งาน", product_id], (err, results_status) => {
-          if (err) {
-            res.status(500).send(err);
-          }
-        });
-        res.json({ message: "อับเดตสำเร็จ!!!" });
+    );
+    db.query(
+      "UPDATE borrow_request_status SET status_name = ? WHERE request_id = ?",
+      [status_name, id],
+      (err, results) => {
+        if (err) {
+          res.status(500).send(err);
+        } else {
+          db.query(
+            "UPDATE product SET quantity = quantity + ? WHERE product_id = ?",
+            [qta, product_id],
+            (err, results_status) => {
+              if (err) {
+                res.status(500).send(err);
+              }
+            }
+          );
+          db.query(
+            "UPDATE product SET status = ? WHERE product_id = ? AND quantity > 0",
+            ["พร้อมใช้งาน", product_id],
+            (err, results_status) => {
+              if (err) {
+                res.status(500).send(err);
+              }
+            }
+          );
+          res.json({ message: "อับเดตสำเร็จ!!!" });
+        }
       }
-    });
+    );
   } else {
-    db.query("UPDATE borrow_request_status SET status_name = ? WHERE request_id = ?", [status_name, id], (err, results) => {
-      if (err) {
-        res.status(500).send(err);
-      } else {
-        db.query("UPDATE product SET quantity = quantity - ? WHERE product_id = ?", [qta, product_id], (err, results_status) => {
-          if (err) {
-            res.status(500).send(err);
-          }
-        });
-        db.query("UPDATE product SET status = ? WHERE product_id = ? AND quantity = 0", ["ไม่พร้อมใช้งาน", product_id], (err, results_status) => {
-          if (err) {
-            res.status(500).send(err);
-          }
-        });
-        res.json({ message: "อัปเดตสำเร็จ!!!" });
+    db.query(
+      "UPDATE borrow_request_status SET status_name = ? WHERE request_id = ?",
+      [status_name, id],
+      (err, results) => {
+        if (err) {
+          res.status(500).send(err);
+        } else {
+          db.query(
+            "UPDATE product SET quantity = quantity - ? WHERE product_id = ?",
+            [qta, product_id],
+            (err, results_status) => {
+              if (err) {
+                res.status(500).send(err);
+              }
+            }
+          );
+          db.query(
+            "UPDATE product SET status = ? WHERE product_id = ? AND quantity = 0",
+            ["ไม่พร้อมใช้งาน", product_id],
+            (err, results_status) => {
+              if (err) {
+                res.status(500).send(err);
+              }
+            }
+          );
+          res.json({ message: "อัปเดตสำเร็จ!!!" });
+        }
       }
-    });
+    );
   }
 });
 
@@ -505,14 +657,18 @@ app.put("/borrow/:id/cancel", (req, res) => {
     WHERE request_id = ?
   `;
 
-  db.query(sql, ["ถูกยกเลิก", cancel_reason, canceled_by, id], (err, result) => {
-    if (err) {
-      console.error("Cancel error:", err);
-      res.status(500).send("เกิดข้อผิดพลาดในการยกเลิก");
-    } else {
-      res.json({ message: "ยกเลิกคำร้องสำเร็จ" });
+  db.query(
+    sql,
+    ["ถูกยกเลิก", cancel_reason, canceled_by, id],
+    (err, result) => {
+      if (err) {
+        console.error("Cancel error:", err);
+        res.status(500).send("เกิดข้อผิดพลาดในการยกเลิก");
+      } else {
+        res.json({ message: "ยกเลิกคำร้องสำเร็จ" });
+      }
     }
-  });
+  );
 });
 
 app.put("/borrow/:id/return", (req, res) => {
@@ -543,9 +699,17 @@ app.put("/borrow/:id/return", (req, res) => {
     [id],
     (err, results) => {
       if (err || results.length === 0) {
-        return res.status(404).json({ message: "ไม่พบคำร้องหรือเกิดข้อผิดพลาด" });
+        return res
+          .status(404)
+          .json({ message: "ไม่พบคำร้องหรือเกิดข้อผิดพลาด" });
       }
-      const { quantity: borrowed, return_quantity: alreadyReturned = 0, due_return_date, request_date, price_per_item } = results[0];
+      const {
+        quantity: borrowed,
+        return_quantity: alreadyReturned = 0,
+        due_return_date,
+        request_date,
+        price_per_item,
+      } = results[0];
       const totalAfterReturn = alreadyReturned + return_quantity;
 
       if (totalAfterReturn > borrowed) {
@@ -558,7 +722,11 @@ app.put("/borrow/:id/return", (req, res) => {
       const now = new Date();
       const dueDate = new Date(due_return_date);
       const isLate = now > dueDate;
-      const lateFine = isLate ? Math.ceil((now - dueDate) / (1000 * 60 * 60 * 24)) * 0.25 * price_per_item : 0;
+      const lateFine = isLate
+        ? Math.ceil((now - dueDate) / (1000 * 60 * 60 * 24)) *
+          0.25 *
+          price_per_item
+        : 0;
 
       let damageFine = 0;
       if (return_condition === "ชำรุด") damageFine = 0.5 * price_per_item;
@@ -573,23 +741,50 @@ app.put("/borrow/:id/return", (req, res) => {
           WHERE request_id = ?
         `;
 
-      const borrowParams = [totalAfterReturn, note || null, return_condition, totalFine, id];
+      const borrowParams = [
+        totalAfterReturn,
+        note || null,
+        return_condition,
+        totalFine,
+        id,
+      ];
 
       db.query(updateBorrow, borrowParams, (err2) => {
-        if (err2) return res.status(500).json({ message: "อัปเดตข้อมูลคืนล้มเหลว" });
+        if (err2)
+          return res.status(500).json({ message: "อัปเดตข้อมูลคืนล้มเหลว" });
 
-        db.query("UPDATE borrow_request_status SET status_name = ?, updated_date = NOW() WHERE request_id = ?", [status, id], (err3) => {
-          if (err3) return res.status(500).json({ message: "อัปเดตสถานะล้มเหลว" });
+        db.query(
+          "UPDATE borrow_request_status SET status_name = ?, updated_date = NOW() WHERE request_id = ?",
+          [status, id],
+          (err3) => {
+            if (err3)
+              return res.status(500).json({ message: "อัปเดตสถานะล้มเหลว" });
 
-          if (return_condition !== "สูญหาย") {
-            db.query("UPDATE product SET quantity = quantity + ? WHERE product_id = ?", [return_quantity, product_id], (err4) => {
-              if (err4) return res.status(500).json({ message: "อัปเดตคลังล้มเหลว" });
-              return res.json({ message: "คืนสำเร็จ", status, fine: totalFine });
-            });
-          } else {
-            return res.json({ message: "คืนสำเร็จ (สูญหาย)", status, fine: totalFine });
+            if (return_condition !== "สูญหาย") {
+              db.query(
+                "UPDATE product SET quantity = quantity + ? WHERE product_id = ?",
+                [return_quantity, product_id],
+                (err4) => {
+                  if (err4)
+                    return res
+                      .status(500)
+                      .json({ message: "อัปเดตคลังล้มเหลว" });
+                  return res.json({
+                    message: "คืนสำเร็จ",
+                    status,
+                    fine: totalFine,
+                  });
+                }
+              );
+            } else {
+              return res.json({
+                message: "คืนสำเร็จ (สูญหาย)",
+                status,
+                fine: totalFine,
+              });
+            }
           }
-        });
+        );
       });
     }
   );
@@ -598,17 +793,81 @@ app.put("/borrow/:id/return", (req, res) => {
 app.get("/return-detail/user/:id", (req, res) => {
   const userId = req.params.id;
   const sql = `
-SELECT rd.*, 
-        br.product_id, 
-        p.name AS product_name, 
-        m.full_name AS member_name
-      FROM return_detail rd
-      JOIN borrow_request br ON rd.request_id = br.request_id
-      JOIN product p ON br.product_id = p.product_id
-      JOIN members m ON br.member_id = m.member_id
-      WHERE br.member_id = ?
-      ORDER BY rd.return_date DESC;
+      SELECT 
+    br.request_id,
+    SUM(rd.returned_good) AS returned_good,
+    SUM(rd.returned_damaged) AS returned_damaged,
+    SUM(rd.returned_lost) AS returned_lost,
+    MAX(rd.return_date) AS return_date,
+    MAX(rd.fine_amount) AS fine_amount,
+    MAX(rd.note) AS note,
+    br.product_id,
+    br.quantity,
+    p.name AS product_name, 
+    CASE 
+        WHEN m.full_name IS NOT NULL AND m.full_name != '' 
+            THEN m.full_name 
+        ELSE CONCAT(m.first_name, ' ', m.last_name) 
+    END AS member_name,
+    CASE 
+        WHEN rcv.full_name IS NOT NULL AND rcv.full_name != '' 
+            THEN rcv.full_name 
+        ELSE CONCAT(rcv.first_name, ' ', rcv.last_name) 
+    END AS received_by_name,
+    CASE 
+        WHEN rtn.full_name IS NOT NULL AND rtn.full_name != '' 
+            THEN rtn.full_name 
+        ELSE CONCAT(rtn.first_name, ' ', rtn.last_name) 
+    END AS returned_by_name,
+    IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name
+FROM borrow_request br
+LEFT JOIN return_detail rd ON br.request_id = rd.request_id
+JOIN product p ON br.product_id = p.product_id
+JOIN members m ON br.member_id = m.member_id
+LEFT JOIN members rcv ON rd.received_by = rcv.member_id
+LEFT JOIN members rtn ON rd.returned_by = rtn.member_id
+LEFT JOIN borrow_request_status s ON br.request_id = s.request_id
+GROUP BY
+    br.request_id,
+    br.product_id,
+    br.quantity,
+    p.name,
+    m.full_name, m.first_name, m.last_name,
+    rcv.full_name, rcv.first_name, rcv.last_name,
+    rtn.full_name, rtn.first_name, rtn.last_name,
+    s.status_name;
     `;
+  // const sql = `
+  //     SELECT
+  //         rd.*,
+  //         br.product_id,
+  //         p.name AS product_name,
+  //         CASE
+  //             WHEN m.full_name IS NOT NULL AND m.full_name != ''
+  //                 THEN m.full_name
+  //             ELSE CONCAT(m.first_name, ' ', m.last_name)
+  //         END AS member_name,
+  //         CASE
+  //             WHEN rcv.full_name IS NOT NULL AND rcv.full_name != ''
+  //                 THEN rcv.full_name
+  //             ELSE CONCAT(rcv.first_name, ' ', rcv.last_name)
+  //         END AS received_by_name,
+  //         CASE
+  //             WHEN rtn.full_name IS NOT NULL AND rtn.full_name != ''
+  //                 THEN rtn.full_name
+  //             ELSE CONCAT(rtn.first_name, ' ', rtn.last_name)
+  //         END AS returned_by_name,
+  //         s.status_name
+  //     FROM return_detail rd
+  //     JOIN borrow_request br ON rd.request_id = br.request_id
+  //     JOIN product p ON br.product_id = p.product_id
+  //     JOIN members m ON br.member_id = m.member_id
+  //     LEFT JOIN members rcv ON rd.received_by = rcv.member_id
+  //     LEFT JOIN members rtn ON rd.returned_by = rtn.member_id
+  //     LEFT JOIN borrow_request_status s ON br.request_id = s.request_id;
+  //     WHERE br.member_id = ?
+  //     ORDER BY rd.return_date DESC;
+  //   `;
   // const sql = `
   //     SELECT rd.*,
   //       br.product_id,
@@ -632,20 +891,65 @@ SELECT rd.*,
 // ✅ ดึงข้อมูล return ทั้งหมด (สำหรับผู้ดูแล)
 app.get("/return-detail", (req, res) => {
   const sql = `
-      SELECT rd.*, 
-        br.product_id, 
-        p.name AS product_name, 
-        CASE
-          WHEN m.full_name IS NOT NULL AND m.full_name != ''
-            THEN m.full_name
-          ELSE CONCAT(m.first_name, ' ', m.last_name)
-        END AS member_name
-      FROM return_detail rd
-      JOIN borrow_request br ON rd.request_id = br.request_id
-      JOIN product p ON br.product_id = p.product_id
-      JOIN members m ON br.member_id = m.member_id
-      ORDER BY rd.return_date DESC
+        SELECT 
+    br.request_id,
+    SUM(rd.returned_good) AS returned_good,
+    SUM(rd.returned_damaged) AS returned_damaged,
+    SUM(rd.returned_lost) AS returned_lost,
+    MAX(rd.return_date) AS return_date,
+    MAX(rd.fine_amount) AS fine_amount,
+    MAX(rd.note) AS note,
+    br.product_id,
+    br.quantity,
+    p.name AS product_name, 
+    CASE 
+        WHEN m.full_name IS NOT NULL AND m.full_name != '' 
+            THEN m.full_name 
+        ELSE CONCAT(m.first_name, ' ', m.last_name) 
+    END AS member_name,
+    CASE 
+        WHEN rcv.full_name IS NOT NULL AND rcv.full_name != '' 
+            THEN rcv.full_name 
+        ELSE CONCAT(rcv.first_name, ' ', rcv.last_name) 
+    END AS received_by_name,
+    CASE 
+        WHEN rtn.full_name IS NOT NULL AND rtn.full_name != '' 
+            THEN rtn.full_name 
+        ELSE CONCAT(rtn.first_name, ' ', rtn.last_name) 
+    END AS returned_by_name,
+    IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name
+FROM borrow_request br
+LEFT JOIN return_detail rd ON br.request_id = rd.request_id
+JOIN product p ON br.product_id = p.product_id
+JOIN members m ON br.member_id = m.member_id
+LEFT JOIN members rcv ON rd.received_by = rcv.member_id
+LEFT JOIN members rtn ON rd.returned_by = rtn.member_id
+LEFT JOIN borrow_request_status s ON br.request_id = s.request_id
+GROUP BY
+    br.request_id,
+    br.product_id,
+    br.quantity,
+    p.name,
+    m.full_name, m.first_name, m.last_name,
+    rcv.full_name, rcv.first_name, rcv.last_name,
+    rtn.full_name, rtn.first_name, rtn.last_name,
+    s.status_name;
     `;
+  // const sql = `
+  //     SELECT rd.*,
+  //       br.product_id,
+  //       p.name AS product_name,
+  //       CASE
+  //         WHEN m.full_name IS NOT NULL AND m.full_name != ''
+  //           THEN m.full_name
+  //         ELSE CONCAT(m.first_name, ' ', m.last_name)
+  //       END AS member_name
+  //     FROM return_detail rd
+  //     JOIN borrow_request br ON rd.request_id = br.request_id
+  //     JOIN product p ON br.product_id = p.product_id
+  //     JOIN members m ON br.member_id = m.member_id
+  //     ORDER BY rd.return_date DESC
+  //   `;
   // const sql = `
   //     SELECT rd.*,
   //       br.product_id,
@@ -700,7 +1004,9 @@ app.get("/borrow/unreturned", (req, res) => {
   db.query(sql, (err, results) => {
     if (err) {
       console.error("Error fetching unreturned requests:", err);
-      return res.status(500).json({ error: "Failed to fetch unreturned requests" });
+      return res
+        .status(500)
+        .json({ error: "Failed to fetch unreturned requests" });
     }
     res.json(results);
   });
@@ -724,18 +1030,31 @@ app.get("/return-detail", verifyToken, (req, res) => {
   const userId = req.user.id;
 
   let sql = `
-      SELECT rd.*, 
-        br.product_id, 
-        p.name AS product_name, 
-        CASE
-          WHEN m.full_name IS NOT NULL AND m.full_name != ''
-            THEN m.full_name
-          ELSE CONCAT(m.first_name, ' ', m.last_name)
-        END AS member_name
-      FROM return_detail rd
-      JOIN borrow_request br ON rd.request_id = br.request_id
-      JOIN product p ON br.product_id = p.product_id
-      JOIN members m ON br.member_id = m.member_id
+    SELECT 
+    br.request_id,
+    br.member_id,
+    p.name AS product_name,
+    br.quantity,
+    br.request_date,
+    br.due_return_date,
+    br.return_date,
+    br.note,
+    IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
+    CASE 
+        WHEN m.full_name IS NOT NULL AND m.full_name != '' 
+            THEN m.full_name 
+        ELSE CONCAT(m.first_name, ' ', m.last_name) 
+    END AS member_name,
+    rd.request_id AS return_detail_request_id, -- ถ้าไม่มี return_detail จะเป็น NULL
+    rd.returned_good,
+    rd.returned_damaged,
+    rd.returned_lost,
+    rd.note AS return_note
+FROM borrow_request br
+JOIN product p ON br.product_id = p.product_id
+JOIN members m ON br.member_id = m.member_id
+LEFT JOIN borrow_request_status s ON br.request_id = s.request_id
+LEFT JOIN return_detail rd ON br.request_id = rd.request_id
     `;
   // let sql = `
   //     SELECT rd.*,
@@ -774,7 +1093,18 @@ app.get("/return-detail", verifyToken, (req, res) => {
 });
 
 app.post("/return-detail", verifyToken, (req, res) => {
-  const { request_id, good_qty, damaged_qty, lost_qty, fine_amount, note, returned_by, received_by, qty, product_id } = req.body;
+  const {
+    request_id,
+    good_qty,
+    damaged_qty,
+    lost_qty,
+    fine_amount,
+    note,
+    returned_by,
+    received_by,
+    qty,
+    product_id,
+  } = req.body;
 
   const checksql = `
       SELECT member_id, first_name, last_name, full_name
@@ -790,25 +1120,31 @@ app.post("/return-detail", verifyToken, (req, res) => {
   const receivedSearch = `%${received_by}%`;
 
   // ค้นหา returned_by
-  db.query(checksql, [returnedSearch, returnedSearch, returnedSearch], (err, result1) => {
-    if (err || result1.length === 0) {
-      console.error("ค้นหา returned_by ไม่สำเร็จ:", err);
-      console.error("returned_by:", returnedSearch);
-      console.error("checksql result:", checksql);
-      return res.status(400).send("ไม่พบผู้ส่งคืน");
-    }
-
-    const returned_id = result1[0].member_id;
-
-    // ค้นหา received_by
-    db.query(checksql, [receivedSearch, receivedSearch, receivedSearch], (err2, result2) => {
-      if (err2 || result2.length === 0) {
-        return res.status(400).send("ไม่พบผู้รับของคืน");
+  db.query(
+    checksql,
+    [returnedSearch, returnedSearch, returnedSearch],
+    (err, result1) => {
+      if (err || result1.length === 0) {
+        console.error("ค้นหา returned_by ไม่สำเร็จ:", err);
+        console.error("returned_by:", returnedSearch);
+        console.error("checksql result:", checksql);
+        return res.status(400).send("ไม่พบผู้ส่งคืน");
       }
 
-      const received_id = result2[0].member_id;
+      const returned_id = result1[0].member_id;
 
-      const insertsql = `
+      // ค้นหา received_by
+      db.query(
+        checksql,
+        [receivedSearch, receivedSearch, receivedSearch],
+        (err2, result2) => {
+          if (err2 || result2.length === 0) {
+            return res.status(400).send("ไม่พบผู้รับของคืน");
+          }
+
+          const received_id = result2[0].member_id;
+
+          const insertsql = `
         INSERT INTO return_detail (
           request_id,
           returned_good,
@@ -822,53 +1158,86 @@ app.post("/return-detail", verifyToken, (req, res) => {
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
       `;
 
-      db.query(insertsql, [request_id, good_qty, damaged_qty, lost_qty, fine_amount, note, returned_id, received_id], (err3, result3) => {
-        console.error("Insert return_detail error:", err3);
-        if (err3) {
-          return res.status(500).send("เกิดข้อผิดพลาดในการบันทึกการคืนของ");
-        }
-        // อัปเดตสถานะการคืนของ
-        var total_return = good_qty + damaged_qty + lost_qty;
-        if (total_return === qty) {
-          const updatesql = `
+          db.query(
+            insertsql,
+            [
+              request_id,
+              good_qty,
+              damaged_qty,
+              lost_qty,
+              fine_amount,
+              note,
+              returned_id,
+              received_id,
+            ],
+            (err3, result3) => {
+              console.error("Insert return_detail error:", err3);
+              if (err3) {
+                return res
+                  .status(500)
+                  .send("เกิดข้อผิดพลาดในการบันทึกการคืนของ");
+              }
+              // อัปเดตสถานะการคืนของ
+              var total_return = good_qty + damaged_qty + lost_qty;
+              if (total_return === qty) {
+                const updatesql = `
                 UPDATE borrow_request_status
                 SET status_name = 'คืนของแล้ว'
                 WHERE request_id = ?
               `;
-          db.query(updatesql, [request_id], (err4, result4) => {
-            console.log(result4);
-            if (err4) {
-              return res.status(500).send("เกิดข้อผิดพลาดในการอัปเดตสถานะ");
-            }
-            db.query("UPDATE product SET quantity = quantity + ? , status = ? WHERE product_id = ?", [total_return, "พร้อมใช้งาน", product_id], (err, results_status) => {
-              if (err) {
-                res.status(500).send(err);
-              }
-            });
-            return res.status(200).send("บันทึกการคืนของและอัปเดตสถานะเรียบร้อยแล้ว");
-          });
-        } else if (total_return < qty) {
-          const updatesql = `
+                db.query(updatesql, [request_id], (err4, result4) => {
+                  console.log(result4);
+                  if (err4) {
+                    return res
+                      .status(500)
+                      .send("เกิดข้อผิดพลาดในการอัปเดตสถานะ");
+                  }
+                  db.query(
+                    "UPDATE product SET quantity = quantity + ? , status = ? WHERE product_id = ?",
+                    [total_return, "พร้อมใช้งาน", product_id],
+                    (err, results_status) => {
+                      if (err) {
+                        res.status(500).send(err);
+                      }
+                    }
+                  );
+                  return res
+                    .status(200)
+                    .send("บันทึกการคืนของและอัปเดตสถานะเรียบร้อยแล้ว");
+                });
+              } else if (total_return < qty) {
+                const updatesql = `
                 UPDATE borrow_request_status
                 SET status_name = 'คืนไม่ครบ'
                 WHERE request_id = ?
               `;
-          db.query(updatesql, [request_id], (err4, result4) => {
-            console.log(result4);
-            if (err4) {
-              return res.status(500).send("เกิดข้อผิดพลาดในการอัปเดตสถานะ");
-            }
-            db.query("UPDATE product SET quantity = quantity + ? , status = ? WHERE product_id = ?", [total_return, "พร้อมใช้งาน", product_id], (err, results_status) => {
-              if (err) {
-                res.status(500).send(err);
+                db.query(updatesql, [request_id], (err4, result4) => {
+                  console.log(result4);
+                  if (err4) {
+                    return res
+                      .status(500)
+                      .send("เกิดข้อผิดพลาดในการอัปเดตสถานะ");
+                  }
+                  db.query(
+                    "UPDATE product SET quantity = quantity + ? , status = ? WHERE product_id = ?",
+                    [total_return, "พร้อมใช้งาน", product_id],
+                    (err, results_status) => {
+                      if (err) {
+                        res.status(500).send(err);
+                      }
+                    }
+                  );
+                  return res
+                    .status(200)
+                    .send("บันทึกการคืนของและอัปเดตสถานะเรียบร้อยแล้ว");
+                });
               }
-            });
-            return res.status(200).send("บันทึกการคืนของและอัปเดตสถานะเรียบร้อยแล้ว");
-          });
+            }
+          );
         }
-      });
-    });
-  });
+      );
+    }
+  );
 });
 
 // ✅ ส่วนเสริมใหม่ใน server.js (Backend) สำหรับ "บันทึกการซ่อม"
@@ -877,7 +1246,15 @@ app.use(express.json());
 
 // ✅ เพิ่มรายการซ่อมใหม่ (โดยผู้ดูแลเท่านั้น)
 app.post("/maintenance-record", (req, res) => {
-  const { request_id, member_id, quantity, cost, description, repaired_by, completed_date } = req.body;
+  const {
+    request_id,
+    member_id,
+    quantity,
+    cost,
+    description,
+    repaired_by,
+    completed_date,
+  } = req.body;
 
   const sql = `
     INSERT INTO maintenance_record
@@ -885,17 +1262,29 @@ app.post("/maintenance-record", (req, res) => {
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
 
-  db.query(sql, [request_id, member_id, quantity, cost, description, repaired_by, completed_date], (err, result) => {
-    if (err) return res.status(500).send(err);
+  db.query(
+    sql,
+    [
+      request_id,
+      member_id,
+      quantity,
+      cost,
+      description,
+      repaired_by,
+      completed_date,
+    ],
+    (err, result) => {
+      if (err) return res.status(500).send(err);
 
-    // หลัง insert สำเร็จ → บันทึกสถานะเริ่มต้นเป็น "กำลังซ่อม"
-    const insertId = result.insertId;
-    const statusSql = `INSERT INTO maintenance_status (record_id, status_name) VALUES (?, 'กำลังซ่อม')`;
-    db.query(statusSql, [insertId], (err2) => {
-      if (err2) return res.status(500).send(err2);
-      res.status(200).send("เพิ่มรายการซ่อมและสถานะเรียบร้อยแล้ว");
-    });
-  });
+      // หลัง insert สำเร็จ → บันทึกสถานะเริ่มต้นเป็น "กำลังซ่อม"
+      const insertId = result.insertId;
+      const statusSql = `INSERT INTO maintenance_status (record_id, status_name) VALUES (?, 'กำลังซ่อม')`;
+      db.query(statusSql, [insertId], (err2) => {
+        if (err2) return res.status(500).send(err2);
+        res.status(200).send("เพิ่มรายการซ่อมและสถานะเรียบร้อยแล้ว");
+      });
+    }
+  );
 });
 
 // ✅ GET: ดึงข้อมูลการซ่อมทั้งหมด
@@ -955,10 +1344,14 @@ app.put("/maintenance-record/:id", (req, res) => {
     WHERE record_id = ?
   `;
 
-  db.query(sql, [status_name, actual_finish_date, cost, assigned_to, id], (err, result) => {
-    if (err) return res.status(500).json(err);
-    res.json({ message: "อัปเดตสถานะซ่อมสำเร็จ" });
-  });
+  db.query(
+    sql,
+    [status_name, actual_finish_date, cost, assigned_to, id],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
+      res.json({ message: "อัปเดตสถานะซ่อมสำเร็จ" });
+    }
+  );
 });
 
 app.put("/maintenance/update-repair/:id", (req, res) => {

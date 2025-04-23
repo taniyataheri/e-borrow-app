@@ -226,7 +226,8 @@ function History() {
 
   const filteredHistory = history.filter((his) => {
     console.log(his); // ✅ ตรวจสอบว่าข้อมูลมาครบไหม
-    const allowedStatuses = ["รอการอนุมัติ", "อนุมัติแล้ว", "ผู้ยืมได้รับของแล้ว", "รับของแล้ว" , "คืนไม่ครบ", "คืนของแล้ว"];
+    const allowedStatuses = ["รอการอนุมัติ", "อนุมัติแล้ว" , "ผู้ยืมได้รับของแล้ว" , "ถูกยกเลิก" , "คืนไม่ครบ"];
+    // const allowedStatuses = ["รอการอนุมัติ", "อนุมัติแล้ว", "ผู้ยืมได้รับของแล้ว", "รับของแล้ว" , "คืนไม่ครบ", "คืนของแล้ว"];
     const matchStatus = allowedStatuses.includes(his.status_name);
 
     const matchFilter = !filter || his.status_name === filter;
@@ -240,7 +241,8 @@ function History() {
     axios
       .put(
         `http://localhost:3001/borrow/${requestId}/cancel`,
-        {
+        { 
+
           cancel_reason: cancelReason,
           canceled_by: user?.full_name && user.full_name.trim() !== "" ? user.full_name : user?.email || "unknown",
         },
@@ -421,10 +423,10 @@ function History() {
                 <Form.Select value={filter} onChange={(e) => setFilter(e.target.value)} style={{ width: "250px" }}>
                   <option value="">-- กรุณาเลือกสถานะ --</option>
                   <option value="รอการอนุมัติ">รอการอนุมัติ</option>
+                  <option value="ถูกยกเลิก">ถูกยกเลิก</option>
                   <option value="อนุมัติแล้ว">อนุมัติแล้ว</option>
-                  <option value="รับของแล้ว">รับของแล้ว</option>
+                  <option value="ผู้ยืมได้รับของแล้ว">ผู้ยืมได้รับของแล้ว</option>
                   <option value="คืนไม่ครบ">คืนไม่ครบ</option>
-                  <option value="คืนของแล้ว">คืนของแล้ว</option>
                 </Form.Select>
               </Col>
             </Row>
@@ -468,7 +470,7 @@ function History() {
                       {role === 2 && <td style={{ color: r.status_name === "คืนไม่ครบ" ? "red" : "black" }}>{r.total || 0}</td>}
                       <td style={{ color: r.status_name === "คืนไม่ครบ" ? "green" : "black" }}>{["รับของแล้ว", "คืนไม่ครบ"].includes(r.status_name) ? (r.quantity || 0) - (r.total || 0) : r.status_name === "ส่งคืนแล้ว" ? 0 : "-"}</td>
                       <td>{r.return_date ? (getFine(r.request_date, r.return_date) * r.price_per_item).toFixed(2) : 0}</td>
-                      <td style={{fontWeight: "500",color: r.status_name === "คืนไม่ครบ" ? "red" : r.status_name === "รอการอนุมัติ" ? "orange" : r.status_name === "อนุมัติแล้ว" ? "green" : "black"}}>{r.status_name}</td>
+                      <td style={{fontWeight: "500",color: r.status_name === "ถูกยกเลิก" ? "red" : r.status_name === "คืนไม่ครบ" ? "red" : r.status_name === "รอการอนุมัติ" ? "orange" : r.status_name === "อนุมัติแล้ว" ? "green" : "black"}}>{r.status_name}</td>
                       {role === 1 && (
                         <td>
                           {r.status_name === "รอการอนุมัติ" && (
@@ -540,6 +542,16 @@ function History() {
                               disabled={r.status_name === "คืนของแล้ว"}
                             >
                               {r.status_name === "คืนของแล้ว" ? "คืนทั้งหมดแล้ว" : "ตรวจรับของคืน"}
+                            </Button>
+                          )}
+
+                          {(r.status_name === "ถูกยกเลิก") && (
+                            <Button
+                              variant="danger"
+                              className="w-100 my-1"
+                              disabled="true"
+                            >
+                             ถูกยกเลิก
                             </Button>
                           )}
                            {/* {(r.status_name === "รับของแล้ว" || r.status_name === "คืนไม่ครบ") && (

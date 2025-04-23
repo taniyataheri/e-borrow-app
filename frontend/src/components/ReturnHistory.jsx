@@ -10,8 +10,8 @@ function ReturnHistory() {
   const [activeTab, setActiveTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const { user, token } = useContext(AuthContext);
-  console.log("🧑‍💻 user:", user);
-  console.log("🔐 token:", token);
+  // console.log("🧑‍💻 user:", user);
+  // console.log("🔐 token:", token);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -46,17 +46,23 @@ function ReturnHistory() {
       dateStyle: "short",
       timeStyle: "short",
     });
-
+console.log("🔍 searchTerm:", returnList);
   const filteredData = Array.isArray(returnList)
+  
     ? returnList.filter((r) => {
-        const totalReturned = r.return_good + r.return_damaged + r.return_lost;
+        // console.log("🔍 searchTerm:", r);
+        const totalReturned = r.returned_good + r.returned_damaged + r.returned_lost;
+        const total = r.quantity;
+        const status = r.status_name || "-";
         const matchTab =
           activeTab === "all"
-            ? totalReturned === r.total
+            ? totalReturned === total
             : activeTab === "partial"
-            ? totalReturned < r.total && (r.return_damaged > 0 || r.return_lost > 0)
+            ? (r.returned_damaged > 0 || r.returned_lost > 0)
+            : activeTab === "unreturned"
+            ? status === "คืนไม่ครบ"
             : activeTab === "overdue"
-            ? totalReturned < r.total
+            ? status === "เลยกำหนดคืน"
             : true;
 
         const searchMatch =
@@ -72,6 +78,8 @@ function ReturnHistory() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+  console.log("📜 paginatedList:", paginatedList);
+
 
   const calculateFine = (dueDate, quantity) => {
     const due = new Date(dueDate);
@@ -81,6 +89,14 @@ function ReturnHistory() {
     return lateDays > 0 ? lateDays * 50 * quantity : 0;
   };
 
+  const formatDDate = (dateStr) => {
+    const date = new Date(dateStr);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear() + 543;
+  
+    return `${day}/${month}/${year}`;
+  };
   return (
     <div className="d-flex flex-column flex-lg-row">
       <Navbar />
@@ -103,7 +119,7 @@ function ReturnHistory() {
               </div>
               <div className="btn-group mb-2">
                 <button className={`btn btn-outline-success ${activeTab === "all" ? "active" : ""}`} onClick={() => setActiveTab("all")}>📦 คืนครบแล้ว</button>
-                <button className={`btn btn-outline-warning ${activeTab === "partial" ? "active" : ""}`} onClick={() => setActiveTab("partial")}>🧩 คืนไม่ครบ</button>
+                <button className={`btn btn-outline-warning ${activeTab === "partial" ? "active" : ""}`} onClick={() => setActiveTab("partial")}>🧩 ชำรุด/สูญหาย</button>
                 <button className={`btn btn-outline-danger ${activeTab === "unreturned" ? "active" : ""}`} onClick={() => setActiveTab("unreturned")}>❌ ค้างคืน</button>
                 <button className={`btn btn-outline-dark ${activeTab === "overdue" ? "active" : ""}`} onClick={() => setActiveTab("overdue")}>📍 เลยกำหนดคืน</button>
               </div>
@@ -121,28 +137,56 @@ function ReturnHistory() {
                   <th>ค่าปรับ</th>
                   <th>หมายเหตุ</th>
                   <th>ผู้รับคืน</th>
+                  <th>สถานะ</th>
                   <th>วัน-เวลา</th>
                 </tr>
               </thead>
-              {(activeTab === "all" || activeTab === "partial") && (
+              {(activeTab === "all") && (
                 <tbody>
                   {paginatedList.length === 0 ? (
                     <tr>
-                      <td colSpan="10" className="text-center text-muted">ไม่พบข้อมูล</td>
+                      <td colSpan="11" className="text-center text-muted">ไม่พบข้อมูล</td>
                     </tr>
                   ) : (
-                    paginatedList.map((r) => (
-                      <tr key={r.return_id}>
+                    paginatedList.map((r, idx) => (
+                      <tr key={`${r.return_id}-${idx}`}>
                         <td>{r.request_id}</td>
                         <td>{r.product_name}</td>
-                        <td>{r.member_name}</td>
-                        <td>{r.return_good}</td>
-                        <td>{r.return_damaged}</td>
-                        <td>{r.return_lost}</td>
-                        <td>{r.fine?.toLocaleString()} บาท</td>
+                        <td>{r.received_by_name}</td>
+                        <td>{r.returned_good}</td>
+                        <td>{r.returned_damaged}</td>
+                        <td>{r.returned_lost}</td>
+                        <td>{r.fine_amount?.toLocaleString()} บาท</td>
                         <td>{r.note || "-"}</td>
-                        <td>{r.receiver || "-"}</td>
-                        <td>{formatDate(r.return_date)}</td>
+                        <td>{r.returned_by_name || "-"}</td>
+                        <td>{r.status_name || "-"}</td>
+                        <td>{formatDDate(r.return_date)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              )}
+
+              {(activeTab === "partial") && (
+                <tbody>
+                  {paginatedList.length === 0 ? (
+                    <tr>
+                      <td colSpan="11" className="text-center text-muted">ไม่พบข้อมูล</td>
+                    </tr>
+                  ) : (
+                    paginatedList.map((r, idx) => (
+                      <tr key={`${r.return_id}-${idx}`}>
+                        <td>{r.request_id}</td>
+                        <td>{r.product_name}</td>
+                        <td>{r.received_by_name}</td>
+                        <td>{r.returned_good}</td>
+                        <td>{r.returned_damaged}</td>
+                        <td>{r.returned_lost}</td>
+                        <td>{r.fine_amount?.toLocaleString()} บาท</td>
+                        <td>{r.note || "-"}</td>
+                        <td>{r.returned_by_name || "-"}</td>
+                        <td>{r.status_name || "-"}</td>
+                        <td>{formatDDate(r.return_date)}</td>
                       </tr>
                     ))
                   )}
@@ -151,21 +195,24 @@ function ReturnHistory() {
 
               {activeTab === "unreturned" && (
                 <tbody>
-                  {unreturned.length === 0 ? (
+                  {paginatedList.length === 0 ? (
                     <tr>
-                      <td colSpan="10" className="text-center text-muted">ไม่พบรายการค้างคืน</td>
+                      <td colSpan="11" className="text-center text-muted">ไม่พบรายการค้างคืน</td>
                     </tr>
                   ) : (
-                    unreturned.map((item, index) => (
-                      <tr key={item.request_id}>
-                        <td>{item.request_id}</td>
-                        <td>{item.product_name}</td>
-                        <td>{item.full_name || `${item.frist_name} ${item.last_name}`}</td>
-                        <td colSpan="3">-</td>
-                        <td>-</td>
-                        <td>{item.purpose || "-"}</td>
-                        <td>-</td>
-                        <td><span className="text-danger fw-bold">❌ ค้างคืน</span></td>
+                    paginatedList.map((r, idx) => (
+                      <tr key={`${r.return_id}-${idx}`}>
+                        <td>{r.request_id}</td>
+                        <td>{r.product_name}</td>
+                        <td>{r.received_by_name}</td>
+                        <td>{r.returned_good}</td>
+                        <td>{r.returned_damaged}</td>
+                        <td>{r.returned_lost}</td>
+                        <td>{r.fine_amount?.toLocaleString()} บาท</td>
+                        <td>{r.note || "-"}</td>
+                        <td>{r.returned_by_name || "-"}</td>
+                        <td>{r.status_name || "-"}</td>
+                        <td>{formatDDate(r.return_date)}</td>
                       </tr>
                     ))
                   )}
@@ -174,28 +221,30 @@ function ReturnHistory() {
 
               {activeTab === "overdue" && (
                 <tbody>
-                  {unreturned.filter(item => new Date(item.due_return_date) < new Date()).length === 0 ? (
+                  {paginatedList.length === 0 ? (
                     <tr>
-                      <td colSpan="10" className="text-center text-muted">ไม่พบรายการที่เลยกำหนด</td>
+                      <td colSpan="11" className="text-center text-muted">ไม่พบรายการค้างคืน</td>
                     </tr>
                   ) : (
-                    unreturned
-                      .filter(item => new Date(item.due_return_date) < new Date())
-                      .map((item, index) => (
-                        <tr key={item.request_id}>
-                          <td>{item.request_id}</td>
-                          <td>{item.product_name}</td>
-                          <td>{item.full_name || `${item.frist_name} ${item.last_name}`}</td>
-                          <td colSpan="3">-</td>
-                          <td className="text-danger fw-bold">{calculateFine(item.due_return_date, item.quantity).toLocaleString()} บาท</td>
-                          <td>{item.purpose || "-"}</td>
-                          <td>-</td>
-                          <td>{formatDate(item.due_return_date)}</td>
-                        </tr>
-                      ))
+                    paginatedList.map((r, idx) => (
+                      <tr key={`${r.return_id}-${idx}`}>
+                        <td>{r.request_id}</td>
+                        <td>{r.product_name}</td>
+                        <td>{r.received_by_name}</td>
+                        <td>{r.returned_good}</td>
+                        <td>{r.returned_damaged}</td>
+                        <td>{r.returned_lost}</td>
+                        <td>{r.fine_amount?.toLocaleString()} บาท</td>
+                        <td>{r.note || "-"}</td>
+                        <td>{r.returned_by_name || "-"}</td>
+                        <td>{r.status_name || "-"}</td>
+                        <td>{formatDDate(r.return_date)}</td>
+                      </tr>
+                    ))
                   )}
                 </tbody>
               )}
+
             </Table>
 
             <nav className="d-flex justify-content-center mt-4">

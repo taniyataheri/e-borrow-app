@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 23, 2025 at 12:26 PM
+-- Generation Time: Apr 23, 2025 at 07:17 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.3.20
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -43,8 +43,9 @@ CREATE TABLE `borrow_request` (
 --
 
 INSERT INTO `borrow_request` (`request_id`, `member_id`, `product_id`, `quantity`, `request_date`, `due_return_date`, `return_date`, `note`) VALUES
-(6, 'M002', 1, 5, '2025-04-23', '2025-04-30', NULL, 'ยืมนะ'),
-(7, 'M002', 1, 10, '2025-04-23', '2025-04-30', NULL, 'ยืมอีกที');
+(13, 'M002', 1, 5, '2025-04-23', '2025-04-30', NULL, 'ยืม'),
+(14, 'M002', 1, 2, '2025-04-23', '2025-04-30', NULL, 'ยืมทั้งหมด'),
+(15, 'M002', 1, 1, '2025-04-23', '2025-04-23', NULL, 'เลยกำหนด');
 
 -- --------------------------------------------------------
 
@@ -55,16 +56,20 @@ INSERT INTO `borrow_request` (`request_id`, `member_id`, `product_id`, `quantity
 CREATE TABLE `borrow_request_status` (
   `status_id` int(11) NOT NULL,
   `request_id` int(11) DEFAULT NULL,
-  `status_name` varchar(100) DEFAULT NULL
+  `status_name` varchar(100) DEFAULT NULL,
+  `cancel_reason` varchar(255) DEFAULT NULL,
+  `canceled_by` varchar(255) DEFAULT NULL,
+  `updated_date` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `borrow_request_status`
 --
 
-INSERT INTO `borrow_request_status` (`status_id`, `request_id`, `status_name`) VALUES
-(1, 6, 'คืนของแล้ว'),
-(2, 7, 'คืนไม่ครบ');
+INSERT INTO `borrow_request_status` (`status_id`, `request_id`, `status_name`, `cancel_reason`, `canceled_by`, `updated_date`) VALUES
+(1, 13, 'คืนไม่ครบ', NULL, NULL, NULL),
+(2, 14, 'คืนของแล้ว', NULL, NULL, NULL),
+(3, 15, 'เลยกำหนดคืน', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -143,7 +148,7 @@ CREATE TABLE `product` (
 --
 
 INSERT INTO `product` (`product_id`, `name`, `color`, `quantity`, `size`, `price_per_item`, `category_id`, `status`, `image`) VALUES
-(1, 'เหลืองลูกไม้', NULL, 2, NULL, 350.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/bYV68NzV/yellow-lace-and-jersey-slit-prom-dress-2.webp'),
+(1, 'เหลืองลูกไม้', NULL, 6, NULL, 350.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/bYV68NzV/yellow-lace-and-jersey-slit-prom-dress-2.webp'),
 (2, 'เดรสโอรส', NULL, 1, NULL, 400.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/K8xQDKQz/iz63bp.jpg'),
 (3, 'เดรสบานเย็น', NULL, 4, NULL, 300.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/xTYLWwmp/images.jpg'),
 (4, 'เดรสชมพูกะปิจีบรอบ', NULL, 2, NULL, 400.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/sgKFYCYk/th-11134207-7ras9-m1fe1h2a2zebe3.jpg'),
@@ -357,10 +362,8 @@ CREATE TABLE `return_detail` (
 --
 
 INSERT INTO `return_detail` (`return_id`, `request_id`, `returned_good`, `returned_damaged`, `returned_lost`, `return_date`, `fine_amount`, `received_by`, `returned_by`, `note`) VALUES
-(1, 6, 2, 0, 0, '2025-04-23', 0.00, 'M002', 'M001', 'ฟหก'),
-(2, 6, 3, 0, 0, '2025-04-23', 0.00, 'M002', 'M001', 'ฟก'),
-(3, 7, 1, 0, 0, '2025-04-23', 0.00, 'M002', 'M001', 'asdas'),
-(4, 7, 1, 0, 0, '2025-04-23', 0.00, 'M002', 'M001', 'ฟฟ');
+(1, 13, 2, 0, 0, '2025-04-23', 0.00, 'M002', 'M001', 'คืน'),
+(2, 14, 0, 1, 1, '2025-04-23', 350.00, 'M002', 'M001', 'แย่ทำขาด');
 
 -- --------------------------------------------------------
 
@@ -441,13 +444,13 @@ ALTER TABLE `sizes`
 -- AUTO_INCREMENT for table `borrow_request`
 --
 ALTER TABLE `borrow_request`
-  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `borrow_request_status`
 --
 ALTER TABLE `borrow_request_status`
-  MODIFY `status_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `status_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `categories`
@@ -465,7 +468,7 @@ ALTER TABLE `product`
 -- AUTO_INCREMENT for table `return_detail`
 --
 ALTER TABLE `return_detail`
-  MODIFY `return_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `return_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `sizes`
