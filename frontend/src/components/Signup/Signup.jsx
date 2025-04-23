@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Container, Card, Form, Button } from "react-bootstrap";
 import axios from "axios";
-import Navbar from '../Navbar/Navbar';
+import Navbar from "../Navbar/Navbar";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/authContext";
 import Swal from "sweetalert2";
@@ -17,7 +17,7 @@ const Signup = () => {
     birthDate: "",
     username: "",
     password: "",
-    role_id: 2
+    role_id: 2,
   });
 
   const auth = useContext(AuthContext);
@@ -63,8 +63,9 @@ const Signup = () => {
   };
 
   const addMember = () => {
-    axios.get(`http://localhost:3001/check-duplicate?email=${formData.email}&username=${formData.username}`)
-      .then(res => {
+    axios
+      .get(`http://localhost:3001/check-duplicate?email=${formData.email}&username=${formData.username}`)
+      .then((res) => {
         const { emailExists, usernameExists } = res.data;
         if (emailExists || usernameExists) {
           Swal.fire({
@@ -75,36 +76,39 @@ const Signup = () => {
           return;
         }
 
-        axios.post("http://localhost:3001/users", formData).then(() => {
-          Swal.fire({
-            icon: "success",
-            title: "สร้างบัญชีผู้ใช้งานสำเร็จ",
-            text: "บัญชีผู้ใช้ถูกสร้างเรียบร้อยแล้ว",
-            confirmButtonColor: "#3085d6",
-            confirmButtonText: "ตกลง",
+        axios
+          .post("http://localhost:3001/users", formData)
+          .then(() => {
+            Swal.fire({
+              icon: "success",
+              title: "สร้างบัญชีผู้ใช้งานสำเร็จ",
+              text: "บัญชีผู้ใช้ถูกสร้างเรียบร้อยแล้ว",
+              confirmButtonColor: "#3085d6",
+              confirmButtonText: "ตกลง",
+            });
+            setFormData({
+              frist_name: "",
+              last_name: "",
+              prefix_name: "",
+              email: "",
+              team: "",
+              phone: "",
+              birthDate: "",
+              username: "",
+              password: "",
+              role_id: 2,
+            });
+          })
+          .catch((err) => {
+            console.error(err);
+            Swal.fire({
+              icon: "error",
+              title: "เกิดข้อผิดพลาด",
+              text: "ไม่สามารถลงทะเบียนได้ กรุณาตรวจสอบข้อมูลอีกครั้ง",
+            });
           });
-          setFormData({
-            frist_name: "",
-            last_name: "",
-            prefix_name: "",
-            email: "",
-            team: "",
-            phone: "",
-            birthDate: "",
-            username: "",
-            password: "",
-            role_id: 2
-          });
-        }).catch((err) => {
-          console.error(err);
-          Swal.fire({
-            icon: "error",
-            title: "เกิดข้อผิดพลาด",
-            text: "ไม่สามารถลงทะเบียนได้ กรุณาตรวจสอบข้อมูลอีกครั้ง",
-          });
-        });
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         Swal.fire({
           icon: "error",
@@ -140,62 +144,79 @@ const Signup = () => {
     <div className="d-flex flex-column flex-lg-row">
       <Navbar />
       <Container className="py-4" style={{ backgroundColor: "#F5F5F5", minHeight: "100vh", marginTop: "80px" }}>
-        <Card className="p-4 mx-auto" style={{ maxWidth: "400px", borderRadius: "10px", boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)" }}>
-          <h3 className="text-center mb-3" style={{ color: "#2e7d32" }}>สร้างบัญชีผู้ใช้งาน</h3>
+        <Card className="p-4 mx-auto mt-3" style={{maxWidth: "800px", borderRadius: "10px", boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)" }}>
+          <h3 className="col-12 text-center mb-3" style={{ color: "#2e7d32" }}>
+            สร้างบัญชีผู้ใช้งาน
+          </h3>
           <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Label>คำนำหน้า</Form.Label>
-              <Form.Control as="select" name="prefix_name" value={formData.prefix_name} onChange={handleChange} >
-                <option value=""></option>
-                <option value="นาย">นาย</option>
-                <option value="นางสาว">นางสาว</option>
-                <option value="นาง">นาง</option>
-              </Form.Control>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>ชื่อ</Form.Label>
-              <Form.Control type="text" name="frist_name" value={formData.frist_name} onChange={handleChange}  />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>นามสกุล</Form.Label>
-              <Form.Control type="text" name="last_name" value={formData.last_name} onChange={handleChange}  />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>อีเมล</Form.Label>
-              <Form.Control type="email" name="email" value={formData.email} onChange={handleChange}  />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>ทีม</Form.Label>
-              <Form.Control as="select" name="team" value={formData.team} onChange={handleChange} >
-                <option value="">เลือกทีม</option>
-                <option value="ทีม A">ทีม A</option>
-                <option value="ทีม B">ทีม B</option>
-                <option value="ทีม C">ทีม C</option>
-                <option value="ทีม E">ทีม E</option>
-                <option value="ทีม F">ทีม F</option>
-                <option value="ทีม G">ทีม G</option>
-                <option value="ทีม H">ทีม H</option>
-                <option value="ทีม I">ทีม I</option>
-                <option value="ทีม J">ทีม J</option>
-              </Form.Control>
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>เบอร์โทรศัพท์</Form.Label>
-              <Form.Control type="tel" name="phone" value={formData.phone} onChange={handleChange}  />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>วันเกิด</Form.Label>
-              <Form.Control type="date" name="birthDate" min={minBirthDate} max={maxBirthDate} value={formData.birthDate} onChange={handleChange}  />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>ชื่อผู้ใช้(username)</Form.Label>
-              <Form.Control type="text" name="username" value={formData.username} onChange={handleChange}  />
-            </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Label>รหัสผ่าน</Form.Label>
-              <Form.Control type="password" name="password" value={formData.password} onChange={handleChange}  placeholder="กรอกรหัสผ่านอย่างน้อย 6 ตัวอักษร" />
-            </Form.Group>
-            <Button variant="success" type="submit" className="w-100">ลงทะเบียน</Button>
+            <div className="row">
+              <Form.Group className="col-12 col-lg-6 mb-3">
+                <Form.Label>คำนำหน้า</Form.Label>
+                <Form.Control as="select" name="prefix_name" value={formData.prefix_name} onChange={handleChange}>
+                  <option value=""></option>
+                  <option value="นาย">นาย</option>
+                  <option value="นางสาว">นางสาว</option>
+                  <option value="นาง">นาง</option>
+                </Form.Control>
+              </Form.Group>
+              <Form.Group className="col-12 col-lg-6 mb-3">
+                <Form.Label>ชื่อ</Form.Label>
+                <Form.Control type="text" name="frist_name" value={formData.frist_name} onChange={handleChange} />
+              </Form.Group>
+            </div>
+            <div className="row">
+              <Form.Group className="col-12 col-lg-6 mb-3">
+                <Form.Label>นามสกุล</Form.Label>
+                <Form.Control type="text" name="last_name" value={formData.last_name} onChange={handleChange} />
+              </Form.Group>
+              <Form.Group className="col-12 col-lg-6 mb-3">
+                <Form.Label>อีเมล</Form.Label>
+                <Form.Control type="email" name="email" value={formData.email} onChange={handleChange} />
+              </Form.Group>
+            </div>
+            <div className="row">
+              <Form.Group className="col-12 col-lg-6 mb-3">
+                <Form.Label>ทีม</Form.Label>
+                <Form.Control as="select" name="team" value={formData.team} onChange={handleChange}>
+                  <option value="">เลือกทีม</option>
+                  <option value="ทีม A">ทีม A</option>
+                  <option value="ทีม B">ทีม B</option>
+                  <option value="ทีม C">ทีม C</option>
+                  <option value="ทีม E">ทีม E</option>
+                  <option value="ทีม F">ทีม F</option>
+                  <option value="ทีม G">ทีม G</option>
+                  <option value="ทีม H">ทีม H</option>
+                  <option value="ทีม I">ทีม I</option>
+                  <option value="ทีม J">ทีม J</option>
+                </Form.Control>
+              </Form.Group>
+              <Form.Group className="col-12 col-lg-6 mb-3">
+                <Form.Label>เบอร์โทรศัพท์</Form.Label>
+                <Form.Control type="tel" name="phone" value={formData.phone} onChange={handleChange} />
+              </Form.Group>
+            </div>
+            <div className="row">
+              <Form.Group className="col-12 col-lg-6 mb-3">
+                <Form.Label>วันเกิด</Form.Label>
+                <Form.Control type="date" name="birthDate" min={minBirthDate} max={maxBirthDate} value={formData.birthDate} onChange={handleChange} />
+              </Form.Group>
+              <Form.Group className="col-12 col-lg-6 mb-3">
+                <Form.Label>ชื่อผู้ใช้(username)</Form.Label>
+                <Form.Control type="text" name="username" value={formData.username} onChange={handleChange} />
+              </Form.Group>
+            </div>
+            <div className="row">
+              <Form.Group className="col-12 mb-3">
+                <Form.Label>รหัสผ่าน</Form.Label>
+                <Form.Control type="password" name="password" value={formData.password} onChange={handleChange} placeholder="กรอกรหัสผ่านอย่างน้อย 6 ตัวอักษร" />
+              </Form.Group>
+            </div>
+            <div className="row d-flex justify-content-center">
+              <Button variant="success" type="submit" className="w-100" style={{ maxWidth: "500px" }}>
+                ลงทะเบียน
+              </Button>
+            </div>
+            
           </Form>
         </Card>
       </Container>
