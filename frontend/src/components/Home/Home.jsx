@@ -63,6 +63,7 @@ function Home() {
   const [category_id, setCategoryId] = useState("");
   const [status, setStatus] = useState("");
   const [image, setImage] = useState("");
+  const [previewImage, setPreviewImage] = useState(null);
   const [formBorrow, setFormBorrow] = useState({
     member_id: "",
     product_id: "",
@@ -169,6 +170,7 @@ function Home() {
     category_id: "",
     status: "พร้อมใช้งาน",
     image: "",
+    imageFile: "",
   });
 
   const resetNewProduct = () => {
@@ -181,78 +183,62 @@ function Home() {
       category_id: "",
       status: "พร้อมใช้งาน",
       image: "",
+      imageFile: "",
     });
+    setPreviewImage(null);
   };
-  const [imageFile, setImageFile] = useState(null);
-  const [previewImage, setPreviewImage] = useState(null);
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImageFile(file);
-      setPreviewImage(URL.createObjectURL(file)); // preview ชั่วคราว
-    } else {
-      setImageFile(null);
-      setPreviewImage(null);
-    }
-  };
-  const handleChangeNewProduct = (e) => {
-    setNewProduct({ ...newProduct, [e.target.name]: e.target.value });
-  };
+  
 
   const handleAddProduct = () => {
-    const { name, color, qta, size, price, category_id, status, imageFile } = newProduct;
-
-    // ตรวจสอบข้อมูลครบไหม
-    if (!name || !color || !qta || !size || !price || !category_id || !status || (!newProduct.image && !imageFile)) {
-      console.log("newProduct.image", newProduct.image);
-      console.log("imageFile", imageFile);
-      console.log("price", price);
-      const missing = [];
-      if (!name) missing.push("ชื่อ");
-      if (!color) missing.push("สี");
-      if (!qta) missing.push("จำนวน");
-      if (!size) missing.push("ขนาด");
-      if (!price) missing.push("ราคาต่อชิ้น");
-      if (!category_id) missing.push("ประเภท");
-      if (!status) missing.push("สถานะ");
-      if (!newProduct.image && !imageFile) missing.push("เลือกกรอก URL หรือ อัพโหลดรูปภาพ");
-
+    const { name, color, qta, size, price, category_id, status, image, imageFile } = newProduct;
+  
+    // ตรวจสอบข้อมูล
+    const missing = [];
+    if (!name) missing.push("ชื่อ");
+    if (!color) missing.push("สี");
+    if (!qta) missing.push("จำนวน");
+    if (!size) missing.push("ขนาด");
+    if (!price) missing.push("ราคาต่อชิ้น");
+    if (!category_id) missing.push("ประเภท");
+    if (!status) missing.push("สถานะ");
+    if (!image && !imageFile) missing.push("รูปภาพ (URL หรือ ไฟล์)");
+  
+    if (missing.length > 0) {
       Swal.fire({
         icon: "warning",
         title: "ข้อมูลไม่ครบ!",
         text: `กรุณากรอก: ${missing.join(", ")}`,
         confirmButtonColor: "#2e7d32",
       });
-      if (isNaN(price) || price <= 0) {
-        Swal.fire({
-          icon: "warning",
-          title: "กรุณากรอกราคาที่ถูกต้อง",
-          confirmButtonColor: "#d33",
-        });
-        return;
-      }
       return;
     }
-
-    // ✅ ส่งข้อมูลไป backend
+  
+    // ใช้ FormData เพื่อรองรับไฟล์
+    const formData = new FormData();
+          formData.append("name", name);
+          formData.append("color", color);
+          formData.append("qta", qta);
+          formData.append("size", size);
+          formData.append("price_per_item", parseFloat(price));
+          formData.append("category_id", category_id);
+          formData.append("status", status);
+  
+    if (imageFile) {
+      formData.append("imageFile", imageFile); // ส่งไฟล์
+    } else {
+      formData.append("image", image); // ส่ง URL
+    }
+  
     axios
-      .post("http://localhost:3001/products", {
-        name,
-        color,
-        qta,
-        size,
-        price_per_item: parseFloat(price),
-        category_id,
-        status,
-        image,
-        imageFile,
+      .post("http://localhost:3001/products", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       })
       .then(() => {
-        fetchProducts(); // โหลดข้อมูลใหม่
-        resetNewProduct(); // เคลียร์ฟอร์ม
-        setShowAdd(false); // ปิด modal
-
+        fetchProducts();
+        resetNewProduct();
+        setShowAdd(false);
+  
         Swal.fire({
           icon: "success",
           title: "เพิ่มทรัพย์สินสำเร็จ",
@@ -268,6 +254,12 @@ function Home() {
           confirmButtonColor: "#d33",
         });
       });
+  };
+  
+  const handleImageChange = (e) => {
+    const value = e.target.value;
+    setImage(value);
+    setPreviewImage(value);  // ตั้งค่าภาพ preview เมื่อมีการเปลี่ยนแปลง URL
   };
 
   useEffect(() => {
@@ -336,25 +328,202 @@ function Home() {
       fetchProducts();
     });
   };
+  // const handleChangeNewProduct = (e) => {
+  //   setNewProduct({ ...newProduct, [e.target.name]: e.target.value });
+  // };
+  const handleChangeNewProduct = (e) => {
+    const { name, value, files } = e.target;
+    // ถ้าเป็นการอัปโหลดไฟล์
+    if (e.target.type === "file") {
+      const file = files[0];
+      if (file) {
+        setNewProduct((prev) => ({
+          ...prev,
+          imageFile: file,
+          image: "",
+        }));
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreviewImage(reader.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    } else {
+      // สำหรับ input อื่น ๆ
+      setNewProduct((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+    
+  };
+  // const updateProduct = (id) => {
+  //   const { name, color, qta, size, price, category_id, status, image, previewImage } = newProduct;
+
+  //   const missing = [];
+  //   if (!name) missing.push("ชื่อ");
+  //   if (!color) missing.push("สี");
+  //   if (!qta) missing.push("จำนวน");
+  //   if (!size) missing.push("ขนาด");
+  //   if (!price) missing.push("ราคาต่อชิ้น");
+  //   if (!category_id) missing.push("ประเภท");
+  //   if (!status) missing.push("สถานะ");
+  //   if (!image && !imageFile) missing.push("รูปภาพ (URL หรือ ไฟล์)");
+  
+  //   if (missing.length > 0) {
+  //     Swal.fire({
+  //       icon: "warning",
+  //       title: "ข้อมูลไม่ครบ!",
+  //       text: `กรุณากรอก: ${missing.join(", ")}`,
+  //       confirmButtonColor: "#2e7d32",
+  //     });
+  //     return;
+  //   }
+  //   console.log("📦 ข้อมูลที่กำลังจะส่ง:", name);
+  //   console.log("📦 ข้อมูลที่กำลังจะส่ง:", color)
+  //   console.log("📦 ข้อมูลที่กำลังจะส่ง:", qta)
+  //   console.log("📦 ข้อมูลที่กำลังจะส่ง:", size);
+  //   console.log("📦 ข้อมูลที่กำลังจะส่ง:", price);
+  //   console.log("📦 ข้อมูลที่กำลังจะส่ง:", category_id);
+  //   console.log("📦 ข้อมูลที่กำลังจะส่ง:", status);
+  //   console.log("📦 ข้อมูลที่กำลังจะส่ง:", image);
+  //   console.log("📦 ข้อมูลที่กำลังจะส่ง:", imageFile);
+  //   console.log("📦 ข้อมูลที่กำลังจะส่ง:", formData);
+  //   // axios
+  //   //   .put(`http://localhost:3001/products/${id}`, formData, {
+  //   //     headers: {
+  //   //       "Content-Type": "multipart/form-data",
+  //   //     },
+  //   //   })
+  //   //   .then((res) => {
+  //   //     Swal.fire("สำเร็จ", res.data.message, "success");
+  //   //     fetchProducts();
+  //   //     setShow(false);
+  //   //   })
+  //   //   .catch((err) => {
+  //   //     console.error(err);
+  //   //     Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถอัปเดตข้อมูลได้", "error");
+  //   //   });
+  // };
+  
+  // const updateProduct = (id) => {
+  //   const missing = [];
+  //   if (!name) missing.push("ชื่อ");
+  //   if (!color) missing.push("สี");
+  //   if (!qta) missing.push("จำนวน");
+  //   if (!size) missing.push("ขนาด");
+  //   if (!price) missing.push("ราคาต่อชิ้น");
+  //   if (!category_id) missing.push("ประเภท");
+  //   if (!status) missing.push("สถานะ");
+  //   if (!image && !newProduct.imageFile) missing.push("รูปภาพ");
+  
+  //   if (missing.length > 0) {
+  //     Swal.fire({
+  //       icon: "warning",
+  //       title: "ข้อมูลไม่ครบ!",
+  //       text: `กรุณากรอก: ${missing.join(", ")}`,
+  //       confirmButtonColor: "#2e7d32",
+  //     });
+  //     return;
+  //   }
+  
+  //   const formData = new FormData();
+  //   formData.append("name", name);
+  //   formData.append("color", color);
+  //   formData.append("qta", qta);
+  //   formData.append("size", size);
+  //   formData.append("price_per_item", parseFloat(price));
+  //   formData.append("category_id", category_id);
+  //   formData.append("status", status);
+  
+  //   if (newProduct.imageFile) {
+  //     formData.append("imageFile", newProduct.imageFile);
+  //   } else {
+  //     formData.append("image", newProduct.image);
+  //   }
+  
+  //   axios
+  //     .post(`http://localhost:3001/products/update/${id}`, formData, {
+  //       headers: { "Content-Type": "multipart/form-data" },
+  //     })
+  //     .then(() => {
+  //       fetchProducts();
+  //       setShow(false);
+  //       Swal.fire({
+  //         icon: "success",
+  //         title: "อัปเดตทรัพย์สินสำเร็จ",
+  //         confirmButtonColor: "#2e7d32",
+  //       });
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error updating product:", error);
+  //       Swal.fire({
+  //         icon: "error",
+  //         title: "เกิดข้อผิดพลาด",
+  //         text: "ไม่สามารถอัปเดตทรัพย์สินได้",
+  //         confirmButtonColor: "#d33",
+  //       });
+  //     });
+  
+  //   // if(!name || !color || !qta || !size || !price || !category_id || !status || !image || !previewImage) {
+  //   //   axios
+  //   //   .put(`http://localhost:3001/products/${id}`, {
+  //   //     name,
+  //   //     color,
+  //   //     qta,
+  //   //     size,
+  //   //     price,
+  //   //     category_id,
+  //   //     status,
+  //   //     image,
+  //   //   })
+  //   //   .then(() => {
+  //   //     fetchProducts();
+  //   //     setShow(false);
+  //   //   });
+  //   // }
+  // };
 
   const updateProduct = (id) => {
+    const {imageFile } = newProduct;
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("color", color);
+    formData.append("qta", qta);
+    formData.append("size", size);
+    formData.append("price_per_item", parseFloat(price)); // ต้องเป็นค่าตัวเลข
+    formData.append("category_id", category_id);
+    formData.append("status", status);
+    formData.append("image", image);
+    formData.append("imageFile", imageFile);
+
+  
     axios
-      .put(`http://localhost:3001/products/${id}`, {
-        name,
-        color,
-        qta,
-        size,
-        price,
-        category_id,
-        status,
-        image,
+      .put(`http://localhost:3001/products/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       })
       .then(() => {
-        fetchProducts();
+        fetchProducts(); // อัปเดตรายการสินค้าทั้งหมด
         setShow(false);
+        resetNewProduct();
+        Swal.fire({
+          icon: "success",
+          title: "อัปเดตทรัพย์สินสำเร็จ",
+          confirmButtonColor: "#2e7d32",
+        });
+      })
+      .catch((error) => {
+        console.error("Error updating product:", error);
+        Swal.fire({
+          icon: "error",
+          title: "เกิดข้อผิดพลาด",
+          text: "ไม่สามารถอัปเดตทรัพย์สินได้",
+          confirmButtonColor: "#d33",
+        });
       });
   };
-
+  
   const borrowProduct = () => {
     const { quantity, request_date, due_return_date, note } = formBorrow;
 
@@ -367,7 +536,6 @@ function Home() {
       });
       return;
     }
-    console.log("📦 ข้อมูลที่กำลังจะส่ง:", formBorrow);
 
     axios
       .post("http://localhost:3001/borrow", formBorrow)
@@ -424,6 +592,7 @@ function Home() {
     setCategoryId(product.category_id || "");
     setStatus(product.status || "พร้อมใช้งาน");
     setImage(product.image || "");
+    setPreviewImage(product.imageFile || "");
     setShow(true);
   };
 
@@ -541,7 +710,7 @@ function Home() {
             const currentPage = currentPageByCategory[category.category_id] || 1;
             const startIndex = (currentPage - 1) * itemsPerPage;
             const paginatedProducts = filteredByCategory.slice(startIndex, startIndex + itemsPerPage);
-
+            console.log("paginatedProducts:", paginatedProducts);
             return (
               <div key={category.category_id} className="mt-4 mx-4">
                 <div className="category-header">
@@ -706,63 +875,118 @@ function Home() {
           })}
 
           {selectedProduct && (
-            <Modal show={show} onHide={handleClose}>
+            <Modal show={show} onHide={handleClose} centered size="lg">
               <Modal.Header closeButton>
                 <Modal.Title>แก้ไขทรัพย์สิน</Modal.Title>
               </Modal.Header>
               <Modal.Body>
                 <Form>
-                  <Form.Group className="mb-3">
-                    <Form.Label>รูป</Form.Label>
-                    <Form.Control type="text" defaultValue={selectedProduct.image} onChange={(e) => setImage(e.target.value)} />
+                  <div className="row">
+                    <Form.Group className="col-12 col-lg-6 mb-3">
+                      <Form.Label>ชื่อ</Form.Label>
+                      <Form.Control
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                      />
+                    </Form.Group>
+
+                    <Form.Group className="col-12 col-lg-6 mb-3">
+                      <Form.Label>ประเภท</Form.Label>
+                      <Form.Select
+                        value={category_id}
+                        onChange={(e) => setCategoryId(e.target.value)}
+                      >
+                        <option value="">เลือกประเภท</option>
+                        <option value="1">ชุดเดรสหรือชุด</option>
+                        <option value="2">เสื้อ</option>
+                        <option value="3">กระโปรง</option>
+                        <option value="4">ชุดคลุม / ผ้าคลุม และ เสื้อคลุม</option>
+                        <option value="5">อุปกรณ์ตกแต่งเสริม (นักร้อง)</option>
+                        <option value="6">อุปกรณ์ตกแต่งเสริม (ร่ายรำ)</option>
+                        <option value="7">ครุภัณฑ์</option>
+                      </Form.Select>
+                    </Form.Group>
+                  </div>
+
+                  <div className="row">
+                    <Form.Group className="col-12 col-lg-6 mb-3">
+                      <Form.Label>ขนาด</Form.Label>
+                      <Form.Select value={size} onChange={(e) => setSize(e.target.value)}>
+                        {renderSizeOptions(category_id)}
+                      </Form.Select>
+                    </Form.Group>
+
+                    <Form.Group className="col-12 col-lg-6 mb-3">
+                      <Form.Label>สี</Form.Label>
+                      <Form.Control
+                        type="text"
+                        value={color}
+                        onChange={(e) => setColor(e.target.value)}
+                      />
+                    </Form.Group>
+                  </div>
+
+                  <div className="row">
+                    <Form.Group className="col-12 col-lg-6 mb-3">
+                      <Form.Label>ราคาต่อชิ้น</Form.Label>
+                      <Form.Control
+                        type="number"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                      />
+                    </Form.Group>
+
+                    <Form.Group className="col-12 col-lg-6 mb-3">
+                      <Form.Label>จำนวน</Form.Label>
+                      <Form.Control
+                        type="number"
+                        value={qta}
+                        onChange={(e) => setQta(e.target.value)}
+                      />
+                    </Form.Group>
+                  </div>
+
+                  <div className="row">
+                    <Form.Group className="col-12 col-lg-6 mb-3">
+                      <Form.Label>สถานะ</Form.Label>
+                      <Form.Select
+                        value={status}
+                        onChange={(e) => setStatus(e.target.value)}
+                      >
+                        <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
+                        <option value="ไม่พร้อมใช้งาน">ไม่พร้อมใช้งาน</option>
+                        <option value="รอซ่อมเเซม">รอซ่อมเเซม</option>
+                        <option value="รอซัก">รอซัก</option>
+                      </Form.Select>
+                    </Form.Group>
+
+                    <Form.Group className="col-12 col-lg-6 mb-3">
+                      <Form.Label>รูป (url)</Form.Label>
+                      <Form.Control
+                        type="text"
+                        value={image}
+                        onChange={handleImageChange}
+                      />
+                    </Form.Group>
+                  </div>
+                  <Form.Group className="col-12 col-lg-12 mb-3">
+                  <Form.Label>แนบรูปภาพ (ถ้ามี)</Form.Label>
+                  <Form.Control type="file" name="imageFile" accept="image/*" onChange={handleChangeNewProduct} />
+                  {(previewImage || image) && (
+                    <div className="mt-4 d-flex justify-content-center">
+                      <img
+                        src={previewImage ? previewImage : image}
+                        alt="Preview"
+                        name="preview"
+                        className="img-fluid rounded"
+                        style={{ maxHeight: "150px" }}
+                      />
+                    </div>
+                  )}
+
                   </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>ชื่อ</Form.Label>
-                    <Form.Control type="text" defaultValue={selectedProduct.name} onChange={(e) => setName(e.target.value)} />
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>ราคาต่อชิ้น</Form.Label>
-                    <Form.Control type="number" defaultValue={selectedProduct.price_per_item} onChange={(e) => setPrice(e.target.value)} />
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>จำนวน</Form.Label>
-                    <Form.Control type="number" defaultValue={selectedProduct.quantity} onChange={(e) => setQta(e.target.value)} />
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>สี</Form.Label>
-                    <Form.Control type="text" defaultValue={selectedProduct.color ? selectedProduct.color : "-"} onChange={(e) => setColor(e.target.value)} />
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>ขนาด</Form.Label>
-                    <Form.Select value={size} onChange={(e) => setSize(e.target.value)}>
-                      {renderSizeOptions(category_id)} {/* ส่ง category_id เข้าไป */}
-                    </Form.Select>
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>สถานะ</Form.Label>
-                    <Form.Select defaultValue={selectedProduct.status} onChange={(e) => setStatus(e.target.value)}>
-                      <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
-                      <option value="ไม่พร้อมใช้งาน">ไม่พร้อมใช้งาน</option>
-                      <option value="รอซ่อมเเซม">รอซ่อมเเซม</option>
-                      <option value="รอซัก">รอซัก</option>
-                    </Form.Select>
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>ประเภท</Form.Label>
-                    <Form.Select
-                      value={category_id}
-                      onChange={(e) => setCategoryId(e.target.value)} // ✅ ต้องมี
-                    >
-                      <option value="">เลือกประเภท</option>
-                      <option value="1">ชุดเดรสหรือชุด</option>
-                      <option value="2">เสื้อ</option>
-                      <option value="3">กระโปรง</option>
-                      <option value="4">ชุดคลุม / ผ้าคลุม และ เสื้อคลุม</option>
-                      <option value="5">อุปกรณ์ตกแต่งเสริม (นักร้อง)</option>
-                      <option value="6">อุปกรณ์ตกแต่งเสริม (ร่ายรำ)</option>
-                      <option value="7">ครุภัณฑ์</option>
-                    </Form.Select>
-                  </Form.Group>
+                  
                 </Form>
               </Modal.Body>
               <Modal.Footer>
@@ -791,7 +1015,7 @@ function Home() {
             </Modal>
           )}
 
-          <Modal show={showBorrow} onHide={handleCloseBorrow} centered>
+          <Modal show={showBorrow} onHide={handleCloseBorrow}  centered size="lg">
             <Modal.Header closeButton>
               <Modal.Title>ส่งคำร้องขอยืมทรัพย์สิน</Modal.Title>
             </Modal.Header>
@@ -872,7 +1096,7 @@ function Home() {
             </Modal>
           )}
 
-          <Modal show={showAdd} onHide={() => setShowAdd(false)} centered>
+          <Modal show={showAdd} onHide={() => setShowAdd(false)} centered size="lg">
             <Modal.Header closeButton>
               <Modal.Title>เพิ่มทรัพย์สิน</Modal.Title>
             </Modal.Header>
@@ -980,10 +1204,10 @@ function Home() {
                 </div>
                 <Form.Group className="col-12 col-lg-12 mb-3">
                   <Form.Label>แนบรูปภาพ (ถ้ามี)</Form.Label>
-                  <Form.Control type="file" accept="image/*" onChange={handleImageChange} />
+                  <Form.Control type="file" name="imageFile" accept="image/*" onChange={handleChangeNewProduct} />
                   {previewImage && (
-                    <div className="mt-2 d-flex justify-content-center">
-                      <img src={previewImage} alt="Preview" className="img-fluid rounded" style={{ maxHeight: "200px" }} />
+                    <div className="mt-4 d-flex justify-content-center">
+                      <img src={previewImage} alt="Preview" name="preview" className="img-fluid rounded" style={{ maxHeight: "150px" }} />
                     </div>
                   )}
                 </Form.Group>
