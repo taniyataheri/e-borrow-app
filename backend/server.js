@@ -49,7 +49,6 @@ app.get("/categories", (req, res) => {
   });
 });
 
-
 // อัพโหลดไฟล์ภาพ
 // path ที่ชี้ไปยัง public/uploads ของ React
 const uploadPath = path.join(__dirname, "../frontend/src/assets/uploads");
@@ -65,7 +64,7 @@ const storage = multer.diskStorage({
     cb(null, uploadPath); // ✅ เปลี่ยน path
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1E9);
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     cb(null, uniqueSuffix + path.extname(file.originalname));
   },
 });
@@ -73,24 +72,21 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 app.use(express.json());
-app.use("/uploads", express.static(path.join(__dirname, "../frontend/src/assets/uploads"))); // ✅ ให้ Express เสิร์ฟรูป
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "../frontend/src/assets/uploads"))
+); // ✅ ให้ Express เสิร์ฟรูป
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 // เพิ่มข้อมูล product
 app.post("/products", upload.single("imageFile"), (req, res) => {
-  const {
-    name,
-    color,
-    qta,
-    size,
-    price_per_item,
-    category_id,
-    status,
-    image,
-  } = req.body;
+  const { name, color, qta, size, price_per_item, category_id, status, image } =
+    req.body;
 
   // ถ้าอัพโหลดไฟล์ → ใช้ path ของไฟล์ที่อัพโหลด
-  const imagePath = req.file ? `src/assets/uploads/${req.file.filename}` : image;
+  const imagePath = req.file
+    ? `src/assets/uploads/${req.file.filename}`
+    : image;
 
   db.query(
     "INSERT INTO product (name, color, quantity, size, price_per_item, category_id, status, image) VALUES (?,?,?,?,?,?,?,?)",
@@ -121,14 +117,26 @@ app.put("/products/:id", upload.single("imageFile"), (req, res) => {
     price_per_item,
     category_id,
     status,
-    image // รูปภาพ URL ที่เก่า
+    image, // รูปภาพ URL ที่เก่า
   } = req.body;
   // ถ้ามีการอัปโหลดไฟล์ใหม่ ให้ใช้ path ของไฟล์ใหม่
-  const imagePath = req.file ? `src/assets/uploads/${req.file.filename}` : image;
+  const imagePath = req.file
+    ? `src/assets/uploads/${req.file.filename}`
+    : image;
 
   db.query(
     "UPDATE product SET name = ?, color = ?, quantity = ?, size = ?, price_per_item = ?, category_id = ?, status = ?, image = ? WHERE product_id = ?",
-    [name, color, qta, size, price_per_item, category_id, status, imagePath, id],
+    [
+      name,
+      color,
+      qta,
+      size,
+      price_per_item,
+      category_id,
+      status,
+      imagePath,
+      id,
+    ],
     (err, results) => {
       if (err) {
         console.error("DB Update Error:", err);
@@ -168,7 +176,6 @@ app.put("/products/:id", upload.single("imageFile"), (req, res) => {
 //     }
 //   );
 // });
-
 
 // ลบข้อมูล product
 app.delete("/products/:id", (req, res) => {
@@ -374,39 +381,86 @@ app.get("/cancel-history", verifyToken, (req, res) => {
 app.get("/borrow", verifyToken, (req, res) => {
   const sql = `
     SELECT
-      b.request_id,
-      b.member_id,
-      b.quantity,
-      b.request_date,
-      b.due_return_date,
-      b.return_date,
-      b.note,
-      s.status_name
-    FROM
-        borrow_request b
-    LEFT JOIN borrow_request_status s ON
-        b.request_id = s.request_id;
+    b.request_id,
+    b.member_id,
+    b.quantity,
+    b.request_date,
+    b.due_return_date,
+    b.return_date,
+    b.note,
+    s.status_name,
+    rd.return_id,
+    rd.return_date AS latest_return_date,
+            rd.returned_good,
+            rd.returned_damaged,
+            rd.returned_lost,
+            rd.note AS return_note,
+            (b.quantity - (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0))) AS total,
+            (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)) AS total_return
+FROM
+    borrow_request b
+LEFT JOIN borrow_request_status s ON b.request_id = s.request_id
+LEFT JOIN return_detail rd ON b.request_id = rd.request_id;
   `;
-  
 
   db.query(sql, (err, results) => {
+    console.log("Raw results:", results);
+
     if (err) {
       console.error("Error fetching borrow requests:", err);
       return res.status(500).json({ error: "Server error" });
     }
-  
-    // ตรวจสอบว่ามีข้อมูลที่เกินกำหนดหรือไม่
-    const overdueRequests = results.filter(r => new Date(r.due_return_date) < new Date());
-  
-    if (overdueRequests.length > 0) {
+
+    function getDateOnlyUTC(date) {
+      const d = new Date(date);
+      return new Date(
+        Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())
+      );
+    }
+
+    const localDate = getDateOnlyUTC(new Date());
+    console.log("📆 Current date (UTC-only):", localDate.toISOString());
+
+    const notReturnedRequests = results.filter((r) => {
+      const dueDate = getDateOnlyUTC(r.due_return_date);
+      return (
+        dueDate < localDate &&
+        (r.return_id === null || (r.total_return || 0) === 0)
+      );
+    });
+
+    const partiallyReturnedOverdueRequests = results.filter((r) => {
+      const dueDate = getDateOnlyUTC(r.due_return_date);
+      return (
+        dueDate < localDate &&
+        (r.total_return || 0) > 0 &&
+        (r.total_return || 0) < r.quantity
+      );
+    });
+
+    const overReturnedRequests = results.filter((r) => {
+      const dueDate = getDateOnlyUTC(r.due_return_date);
+      return dueDate < localDate && (r.total_return || 0) === r.quantity;
+    });
+
+    console.log("notReturnedRequests:", notReturnedRequests);
+    console.log(
+      "partiallyReturnedOverdueRequests:",
+      partiallyReturnedOverdueRequests
+    );
+    console.log("overReturnedRequests:", overReturnedRequests);
+    // return res.json(results);
+    if (notReturnedRequests.length > 0) {
       // อัพเดทสถานะเป็น 'เกินกำหนด' สำหรับรายการที่เกินกำหนด
-      const overdueDateQuery = `UPDATE borrow_request_status SET status_name = 'เลยกำหนดคืน' WHERE request_id IN (${overdueRequests.map(r => r.request_id).join(",")})`;
+      const overdueDateQuery = `UPDATE borrow_request_status SET status_name = 'เลยกำหนดคืน' WHERE request_id IN (${notReturnedRequests
+        .map((r) => r.request_id)
+        .join(",")})`;
       db.query(overdueDateQuery, (err) => {
         if (err) {
           console.error("Error updating overdue status:", err);
           return res.status(500).json({ error: "Server error" });
         }
-  
+
         // ถ้ามีการอัพเดทให้แสดงผลข้อมูลทั้งหมดที่เกี่ยวข้อง
         const sql = `
           SELECT
@@ -441,14 +495,128 @@ app.get("/borrow", verifyToken, (req, res) => {
           ORDER BY
             b.request_id DESC;
         `;
-        
+
         // ดำเนินการ select ข้อมูล
         db.query(sql, (err, data) => {
           if (err) {
             console.error("Error fetching updated borrow request data:", err);
             return res.status(500).json({ error: "Server error" });
           }
-  
+
+          // ส่งข้อมูลกลับไปใน response
+          return res.json(data);
+        });
+      });
+    } else if (partiallyReturnedOverdueRequests.length > 0) {
+      // อัพเดทสถานะเป็น 'เกินกำหนด' สำหรับรายการที่เกินกำหนด
+      const overdueDateQuery = `UPDATE borrow_request_status SET status_name = 'คืนไม่ครบและเลยกำหนด' WHERE request_id IN (${partiallyReturnedOverdueRequests
+        .map((r) => r.request_id)
+        .join(",")})`;
+      db.query(overdueDateQuery, (err) => {
+        if (err) {
+          console.error("Error updating overdue status:", err);
+          return res.status(500).json({ error: "Server error" });
+        }
+
+        // ถ้ามีการอัพเดทให้แสดงผลข้อมูลทั้งหมดที่เกี่ยวข้อง
+        const sql = `
+          SELECT
+            b.request_id,
+            b.member_id,
+            m.full_name,
+            m.first_name,
+            m.last_name,
+            m.team,
+            p.product_id,
+            p.name AS product_name,
+            b.quantity,
+            b.request_date,
+            b.due_return_date,
+            b.return_date,
+            b.note,
+            p.price_per_item,
+            IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
+            rd.return_date AS latest_return_date,
+            rd.returned_good,
+            rd.returned_damaged,
+            rd.returned_lost,
+            rd.note AS return_note,
+            (b.quantity - (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0))) AS total,
+            (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)) AS total_return
+          FROM
+            borrow_request b
+            LEFT JOIN members m ON b.member_id = m.member_id
+            LEFT JOIN product p ON b.product_id = p.product_id
+            LEFT JOIN borrow_request_status s ON b.request_id = s.request_id
+            LEFT JOIN return_detail rd ON b.request_id = rd.request_id
+          ORDER BY
+            b.request_id DESC;
+        `;
+
+        // ดำเนินการ select ข้อมูล
+        db.query(sql, (err, data) => {
+          if (err) {
+            console.error("Error fetching updated borrow request data:", err);
+            return res.status(500).json({ error: "Server error" });
+          }
+
+          // ส่งข้อมูลกลับไปใน response
+          return res.json(data);
+        });
+      });
+    } else if (overReturnedRequests.length > 0) {
+      // อัพเดทสถานะเป็น 'เกินกำหนด' สำหรับรายการที่เกินกำหนด
+      const overdueDateQuery = `UPDATE borrow_request_status SET status_name = 'คืนครบแล้วแต่เลยกำหนดคืน' WHERE request_id IN (${overReturnedRequests
+        .map((r) => r.request_id)
+        .join(",")})`;
+      db.query(overdueDateQuery, (err) => {
+        if (err) {
+          console.error("Error updating overdue status:", err);
+          return res.status(500).json({ error: "Server error" });
+        }
+
+        // ถ้ามีการอัพเดทให้แสดงผลข้อมูลทั้งหมดที่เกี่ยวข้อง
+        const sql = `
+          SELECT
+            b.request_id,
+            b.member_id,
+            m.full_name,
+            m.first_name,
+            m.last_name,
+            m.team,
+            p.product_id,
+            p.name AS product_name,
+            b.quantity,
+            b.request_date,
+            b.due_return_date,
+            b.return_date,
+            b.note,
+            p.price_per_item,
+            IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
+            rd.return_date AS latest_return_date,
+            rd.returned_good,
+            rd.returned_damaged,
+            rd.returned_lost,
+            rd.note AS return_note,
+            (b.quantity - (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0))) AS total,
+            (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)) AS total_return
+          FROM
+            borrow_request b
+            LEFT JOIN members m ON b.member_id = m.member_id
+            LEFT JOIN product p ON b.product_id = p.product_id
+            LEFT JOIN borrow_request_status s ON b.request_id = s.request_id
+            LEFT JOIN return_detail rd ON b.request_id = rd.request_id
+          ORDER BY
+            b.request_id DESC;
+        `;
+
+        // ดำเนินการ select ข้อมูล
+        db.query(sql, (err, data) => {
+          if (err) {
+            console.error("Error fetching updated borrow request data:", err);
+            return res.status(500).json({ error: "Server error" });
+          }
+
           // ส่งข้อมูลกลับไปใน response
           return res.json(data);
         });
@@ -488,20 +656,19 @@ app.get("/borrow", verifyToken, (req, res) => {
         ORDER BY
           b.request_id DESC;
       `;
-      
+
       // ดำเนินการ select ข้อมูล
       db.query(sql, (err, data) => {
         if (err) {
           console.error("Error fetching borrow request data:", err);
           return res.status(500).json({ error: "Server error" });
         }
-  
+
         // ส่งข้อมูลกลับไปใน response
         return res.json(data);
       });
     }
   });
-  
 });
 
 // ดึงข้อมูล borrow ของ member
@@ -871,90 +1038,38 @@ app.put("/borrow/:id/return", (req, res) => {
 
 app.get("/return-detail/user/:id", (req, res) => {
   const userId = req.params.id;
+  
   const sql = `
-      SELECT 
-    br.request_id,
-    SUM(rd.returned_good) AS returned_good,
-    SUM(rd.returned_damaged) AS returned_damaged,
-    SUM(rd.returned_lost) AS returned_lost,
-    MAX(rd.return_date) AS return_date,
-    MAX(rd.fine_amount) AS fine_amount,
-    MAX(rd.note) AS note,
-    br.product_id,
-    br.quantity,
-    p.name AS product_name, 
-    CASE 
-        WHEN m.full_name IS NOT NULL AND m.full_name != '' 
-            THEN m.full_name 
-        ELSE CONCAT(m.first_name, ' ', m.last_name) 
-    END AS member_name,
-    CASE 
-        WHEN rcv.full_name IS NOT NULL AND rcv.full_name != '' 
-            THEN rcv.full_name 
-        ELSE CONCAT(rcv.first_name, ' ', rcv.last_name) 
-    END AS received_by_name,
-    CASE 
-        WHEN rtn.full_name IS NOT NULL AND rtn.full_name != '' 
-            THEN rtn.full_name 
-        ELSE CONCAT(rtn.first_name, ' ', rtn.last_name) 
-    END AS returned_by_name,
-    IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
-    br.due_return_date,
-CASE 
-    WHEN MAX(rd.return_date) IS NULL AND br.due_return_date < CURDATE() THEN 'เลยกำหนดและยังไม่คืนของ'
-    WHEN MAX(rd.return_date) > br.due_return_date THEN 'คืนแล้วแต่เลยกำหนด'
-    WHEN MAX(rd.return_date) IS NOT NULL AND MAX(rd.return_date) <= br.due_return_date THEN 'คืนตรงเวลา'
-    ELSE 'ปกติ'
-END AS return_status
-FROM borrow_request br
-LEFT JOIN return_detail rd ON br.request_id = rd.request_id
-JOIN product p ON br.product_id = p.product_id
-JOIN members m ON br.member_id = m.member_id
-LEFT JOIN members rcv ON rd.received_by = rcv.member_id
-LEFT JOIN members rtn ON rd.returned_by = rtn.member_id
-LEFT JOIN borrow_request_status s ON br.request_id = s.request_id
-WHERE br.member_id = ?
-GROUP BY
-    br.request_id,
-    br.product_id,
-    br.quantity,
-    p.name,
-    m.full_name, m.first_name, m.last_name,
-    rcv.full_name, rcv.first_name, rcv.last_name,
-    rtn.full_name, rtn.first_name, rtn.last_name,
-    s.status_name,
-    br.due_return_date`;
-  // const sql = `
-  //     SELECT
-  //         rd.*,
-  //         br.product_id,
-  //         p.name AS product_name,
-  //         CASE
-  //             WHEN m.full_name IS NOT NULL AND m.full_name != ''
-  //                 THEN m.full_name
-  //             ELSE CONCAT(m.first_name, ' ', m.last_name)
-  //         END AS member_name,
-  //         CASE
-  //             WHEN rcv.full_name IS NOT NULL AND rcv.full_name != ''
-  //                 THEN rcv.full_name
-  //             ELSE CONCAT(rcv.first_name, ' ', rcv.last_name)
-  //         END AS received_by_name,
-  //         CASE
-  //             WHEN rtn.full_name IS NOT NULL AND rtn.full_name != ''
-  //                 THEN rtn.full_name
-  //             ELSE CONCAT(rtn.first_name, ' ', rtn.last_name)
-  //         END AS returned_by_name,
-  //         s.status_name
-  //     FROM return_detail rd
-  //     JOIN borrow_request br ON rd.request_id = br.request_id
-  //     JOIN product p ON br.product_id = p.product_id
-  //     JOIN members m ON br.member_id = m.member_id
-  //     LEFT JOIN members rcv ON rd.received_by = rcv.member_id
-  //     LEFT JOIN members rtn ON rd.returned_by = rtn.member_id
-  //     LEFT JOIN borrow_request_status s ON br.request_id = s.request_id;
-  //     WHERE br.member_id = ?
-  //     ORDER BY rd.return_date DESC;
-  //   `;
+      SELECT
+          rd.*,
+          br.product_id,
+          p.name AS product_name,
+          CASE
+              WHEN m.full_name IS NOT NULL AND m.full_name != ''
+                  THEN m.full_name
+              ELSE CONCAT(m.first_name, ' ', m.last_name)
+          END AS member_name,
+          CASE
+              WHEN rcv.full_name IS NOT NULL AND rcv.full_name != ''
+                  THEN rcv.full_name
+              ELSE CONCAT(rcv.first_name, ' ', rcv.last_name)
+          END AS received_by_name,
+          CASE
+              WHEN rtn.full_name IS NOT NULL AND rtn.full_name != ''
+                  THEN rtn.full_name
+              ELSE CONCAT(rtn.first_name, ' ', rtn.last_name)
+          END AS returned_by_name,
+          s.status_name
+      FROM return_detail rd
+      JOIN borrow_request br ON rd.request_id = br.request_id
+      JOIN product p ON br.product_id = p.product_id
+      JOIN members m ON br.member_id = m.member_id
+      LEFT JOIN members rcv ON rd.received_by = rcv.member_id
+      LEFT JOIN members rtn ON rd.returned_by = rtn.member_id
+      LEFT JOIN borrow_request_status s ON br.request_id = s.request_id;
+      WHERE br.member_id = ?
+      ORDER BY rd.return_date DESC;
+    `;
   // const sql = `
   //     SELECT rd.*,
   //       br.product_id,
@@ -978,75 +1093,37 @@ GROUP BY
 
 // ✅ ดึงข้อมูล return ทั้งหมด (สำหรับผู้ดูแล)
 app.get("/return-detail", (req, res) => {
+  
   const sql = `
-        SELECT 
-    br.request_id,
-    SUM(rd.returned_good) AS returned_good,
-    SUM(rd.returned_damaged) AS returned_damaged,
-    SUM(rd.returned_lost) AS returned_lost,
-    MAX(rd.return_date) AS return_date,
-    MAX(rd.fine_amount) AS fine_amount,
-    MAX(rd.note) AS note,
-    br.product_id,
-    br.quantity,
-    p.name AS product_name, 
-    CASE 
-        WHEN m.full_name IS NOT NULL AND m.full_name != '' 
-            THEN m.full_name 
-        ELSE CONCAT(m.first_name, ' ', m.last_name) 
-    END AS member_name,
-    CASE 
-        WHEN rcv.full_name IS NOT NULL AND rcv.full_name != '' 
-            THEN rcv.full_name 
-        ELSE CONCAT(rcv.first_name, ' ', rcv.last_name) 
-    END AS received_by_name,
-    CASE 
-        WHEN rtn.full_name IS NOT NULL AND rtn.full_name != '' 
-            THEN rtn.full_name 
-        ELSE CONCAT(rtn.first_name, ' ', rtn.last_name) 
-    END AS returned_by_name,
-    IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
-    br.due_return_date,
-CASE 
-    WHEN MAX(rd.return_date) IS NULL AND br.due_return_date < CURDATE() THEN 'เลยกำหนดและยังไม่คืนของ'
-    WHEN MAX(rd.return_date) > br.due_return_date THEN 'คืนแล้วแต่เลยกำหนด'
-    WHEN MAX(rd.return_date) IS NOT NULL AND MAX(rd.return_date) <= br.due_return_date THEN 'คืนตรงเวลา'
-    ELSE 'ปกติ'
-END AS return_status
-FROM borrow_request br
-LEFT JOIN return_detail rd ON br.request_id = rd.request_id
-JOIN product p ON br.product_id = p.product_id
-JOIN members m ON br.member_id = m.member_id
-LEFT JOIN members rcv ON rd.received_by = rcv.member_id
-LEFT JOIN members rtn ON rd.returned_by = rtn.member_id
-LEFT JOIN borrow_request_status s ON br.request_id = s.request_id
-
-GROUP BY
-    br.request_id,
-    br.product_id,
-    br.quantity,
-    p.name,
-    m.full_name, m.first_name, m.last_name,
-    rcv.full_name, rcv.first_name, rcv.last_name,
-    rtn.full_name, rtn.first_name, rtn.last_name,
-    s.status_name,
-    br.due_return_date
+      SELECT
+          rd.*,
+          br.product_id,
+          p.name AS product_name,
+          CASE
+              WHEN m.full_name IS NOT NULL AND m.full_name != ''
+                  THEN m.full_name
+              ELSE CONCAT(m.first_name, ' ', m.last_name)
+          END AS member_name,
+          CASE
+              WHEN rcv.full_name IS NOT NULL AND rcv.full_name != ''
+                  THEN rcv.full_name
+              ELSE CONCAT(rcv.first_name, ' ', rcv.last_name)
+          END AS received_by_name,
+          CASE
+              WHEN rtn.full_name IS NOT NULL AND rtn.full_name != ''
+                  THEN rtn.full_name
+              ELSE CONCAT(rtn.first_name, ' ', rtn.last_name)
+          END AS returned_by_name,
+          s.status_name
+      FROM return_detail rd
+      LEFT JOIN borrow_request br ON rd.request_id = br.request_id
+      LEFT JOIN product p ON br.product_id = p.product_id
+      LEFT JOIN members m ON br.member_id = m.member_id
+      LEFT JOIN members rcv ON rd.received_by = rcv.member_id
+      LEFT JOIN members rtn ON rd.returned_by = rtn.member_id
+      LEFT JOIN borrow_request_status s ON br.request_id = s.request_id
+      ORDER BY rd.return_date DESC;
     `;
-  // const sql = `
-  //     SELECT rd.*,
-  //       br.product_id,
-  //       p.name AS product_name,
-  //       CASE
-  //         WHEN m.full_name IS NOT NULL AND m.full_name != ''
-  //           THEN m.full_name
-  //         ELSE CONCAT(m.first_name, ' ', m.last_name)
-  //       END AS member_name
-  //     FROM return_detail rd
-  //     JOIN borrow_request br ON rd.request_id = br.request_id
-  //     JOIN product p ON br.product_id = p.product_id
-  //     JOIN members m ON br.member_id = m.member_id
-  //     ORDER BY rd.return_date DESC
-  //   `;
   // const sql = `
   //     SELECT rd.*,
   //       br.product_id,

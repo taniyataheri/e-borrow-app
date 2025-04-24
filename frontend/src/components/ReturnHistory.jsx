@@ -34,23 +34,15 @@ function ReturnHistory() {
         ? "http://localhost:3001/return-detail"
         : `http://localhost:3001/return-detail/user/${user.id}`;
 
-    console.log("ข้อมูลที่ได้:", url);
+    // console.log("ข้อมูลที่ได้:", url);
     axios
       .get(url, {
         headers: { Authorization: token },
       })
-      .then((data) => {
-        console.log("ข้อมูลที่ได้:", data);
-      })
+      .then((res) => setReturnList(res.data))
       .catch((err) => console.error("เกิดข้อผิดพลาด:", err));
   };
 
-  const formatDate = (dateStr) =>
-    new Date(dateStr).toLocaleString("th-TH", {
-      dateStyle: "short",
-      timeStyle: "short",
-    });
-  // console.log("🔍 searchTerm:", returnList);
   const filteredData = Array.isArray(returnList)
     ? returnList.filter((r) => {
         console.log("return:", r);
@@ -58,7 +50,6 @@ function ReturnHistory() {
           r.returned_good + r.returned_damaged + r.returned_lost;
         const total = r.quantity;
         const status = r.status_name || "-";
-        const return_status = r.return_status || "-";
         const matchTab =
           activeTab === "all"
             ? totalReturned === total
@@ -67,7 +58,7 @@ function ReturnHistory() {
             : activeTab === "unreturned"
             ? status === "คืนไม่ครบ"
             : activeTab === "overdue"
-            ? return_status === ("คืนแล้วแต่เลยกำหนด" || "คืนแล้วแต่เลยกำหนด")
+            ? ( status === "เลยกำหนดคืนแต่คืนไม่ครบ" || status === "คืนครบแล้วแต่เลยกำหนดคืน")
             : true;
 
         const searchMatch =
@@ -77,6 +68,7 @@ function ReturnHistory() {
         return matchTab && searchMatch;
       })
     : [];
+  console.log("🔍 filteredData:", filteredData);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedList = filteredData.slice(
@@ -179,7 +171,7 @@ function ReturnHistory() {
                   <th>หมายเหตุ</th>
                   <th>ผู้รับคืน</th>
                   <th>สถานะ</th>
-                  <th>วัน-เวลา</th>
+                  <th>วันที่รับคืน</th>
                 </tr>
               </thead>
               {activeTab === "all" && (

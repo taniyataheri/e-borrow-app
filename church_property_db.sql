@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 23, 2025 at 07:17 PM
+-- Generation Time: Apr 24, 2025 at 07:19 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -43,9 +43,12 @@ CREATE TABLE `borrow_request` (
 --
 
 INSERT INTO `borrow_request` (`request_id`, `member_id`, `product_id`, `quantity`, `request_date`, `due_return_date`, `return_date`, `note`) VALUES
-(13, 'M002', 1, 5, '2025-04-23', '2025-04-30', NULL, 'ยืม'),
+(13, 'M002', 1, 5, '2025-04-09', '2025-04-17', NULL, 'ยืม'),
 (14, 'M002', 1, 2, '2025-04-23', '2025-04-30', NULL, 'ยืมทั้งหมด'),
-(15, 'M002', 1, 1, '2025-04-23', '2025-04-23', NULL, 'เลยกำหนด');
+(15, 'M002', 1, 1, '2025-04-23', '2025-04-23', NULL, 'เลยกำหนด'),
+(16, 'M002', 3, 4, '2025-04-01', '2025-04-07', NULL, 'งานแต่ง'),
+(17, 'M002', 1, 3, '2025-04-01', '2025-04-07', NULL, 'test'),
+(18, 'M002', 5, 1, '2025-04-24', '2025-05-01', NULL, 'งานเลี้ยง');
 
 -- --------------------------------------------------------
 
@@ -67,9 +70,12 @@ CREATE TABLE `borrow_request_status` (
 --
 
 INSERT INTO `borrow_request_status` (`status_id`, `request_id`, `status_name`, `cancel_reason`, `canceled_by`, `updated_date`) VALUES
-(1, 13, 'คืนไม่ครบ', NULL, NULL, NULL),
+(1, 13, 'คืนไม่ครบและเลยกำหนด', NULL, NULL, NULL),
 (2, 14, 'คืนของแล้ว', NULL, NULL, NULL),
-(3, 15, 'เลยกำหนดคืน', NULL, NULL, NULL);
+(3, 15, 'เลยกำหนดคืน', NULL, NULL, NULL),
+(4, 16, 'คืนไม่ครบและเลยกำหนด', NULL, NULL, NULL),
+(5, 17, 'คืนไม่ครบและเลยกำหนด', NULL, NULL, NULL),
+(6, 18, 'ถูกยกเลิก', 'ชุดขาด', 'test@example.com', '2025-04-24');
 
 -- --------------------------------------------------------
 
@@ -123,7 +129,8 @@ CREATE TABLE `members` (
 
 INSERT INTO `members` (`member_id`, `prefix`, `first_name`, `last_name`, `full_name`, `email`, `team`, `phone_number`, `birthday`, `username`, `password`, `role_id`, `join_date`) VALUES
 ('M001', 'นาย', 'สมชาย', 'ใจดี', 'สมชาย ใจดี', 'test@example.com', 'A', '0800000000', '1995-05-01', 'testuser', '123456789', 1, '2025-04-19 22:01:30'),
-('M002', 'นางสาว', 'ส้มโอ', 'ธรรมดี', 'ส้มโอ ธรรมดี', 'user@example.com', 'B', '0891234567', '2000-08-15', 'normaluser', '123456789', 2, '2025-04-19 22:01:30');
+('M002', 'นางสาว', 'ส้มโอ', 'ธรรมดี', 'ส้มโอ ธรรมดี', 'user@example.com', 'B', '0891234567', '2000-08-15', 'normaluser', '123456789', 2, '2025-04-19 22:01:30'),
+('ทีม G1', 'นางสาว', NULL, 'test2', NULL, 'test2@test.com', 'ทีม G', '0971517780', '2007-04-23', 'test2', '0971517780', 2, '2025-04-24 22:29:19');
 
 -- --------------------------------------------------------
 
@@ -148,9 +155,9 @@ CREATE TABLE `product` (
 --
 
 INSERT INTO `product` (`product_id`, `name`, `color`, `quantity`, `size`, `price_per_item`, `category_id`, `status`, `image`) VALUES
-(1, 'เหลืองลูกไม้', NULL, 6, NULL, 350.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/bYV68NzV/yellow-lace-and-jersey-slit-prom-dress-2.webp'),
+(1, 'เหลืองลูกไม้', NULL, 8, NULL, 350.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/bYV68NzV/yellow-lace-and-jersey-slit-prom-dress-2.webp'),
 (2, 'เดรสโอรส', NULL, 1, NULL, 400.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/K8xQDKQz/iz63bp.jpg'),
-(3, 'เดรสบานเย็น', NULL, 4, NULL, 300.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/xTYLWwmp/images.jpg'),
+(3, 'เดรสบานเย็น', NULL, 3, NULL, 300.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/xTYLWwmp/images.jpg'),
 (4, 'เดรสชมพูกะปิจีบรอบ', NULL, 2, NULL, 400.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/sgKFYCYk/th-11134207-7ras9-m1fe1h2a2zebe3.jpg'),
 (5, 'เดรสเขียวเข้ม', NULL, 9, NULL, 350.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/bJ74yyPt/images-1.jpg'),
 (6, 'มินิเดรสน้ำเงิน', NULL, 5, NULL, 350.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/wTV4Pc1J/c7thdf.jpg'),
@@ -329,18 +336,6 @@ INSERT INTO `product` (`product_id`, `name`, `color`, `quantity`, `size`, `price
 -- --------------------------------------------------------
 
 --
--- Table structure for table `product_sizes`
---
-
-CREATE TABLE `product_sizes` (
-  `product_id` int(11) NOT NULL,
-  `size_id` int(11) NOT NULL,
-  `quantity` int(11) DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `return_detail`
 --
 
@@ -363,7 +358,12 @@ CREATE TABLE `return_detail` (
 
 INSERT INTO `return_detail` (`return_id`, `request_id`, `returned_good`, `returned_damaged`, `returned_lost`, `return_date`, `fine_amount`, `received_by`, `returned_by`, `note`) VALUES
 (1, 13, 2, 0, 0, '2025-04-23', 0.00, 'M002', 'M001', 'คืน'),
-(2, 14, 0, 1, 1, '2025-04-23', 350.00, 'M002', 'M001', 'แย่ทำขาด');
+(2, 14, 0, 1, 1, '2025-04-23', 350.00, 'M002', 'M001', 'แย่ทำขาด'),
+(3, 15, 1, 0, 0, '2025-04-24', 100.00, 'M002', 'M001', 'gg'),
+(4, 16, 0, 0, 3, '2025-04-24', 3600.00, 'M002', 'M001', ''),
+(5, 17, 0, 0, 1, '2025-04-24', 350.00, 'M002', 'M001', ''),
+(6, 17, 2, 0, 0, '2025-04-24', 0.00, 'M002', 'M001', ''),
+(7, 17, 1, 0, 0, '2025-04-24', 900.00, 'M002', 'M001', '');
 
 -- --------------------------------------------------------
 
@@ -375,6 +375,17 @@ CREATE TABLE `sizes` (
   `size_id` int(11) NOT NULL,
   `size_label` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `sizes`
+--
+
+INSERT INTO `sizes` (`size_id`, `size_label`) VALUES
+(1, 'S'),
+(2, 'M'),
+(3, 'L'),
+(4, 'XL'),
+(5, 'Free Size');
 
 --
 -- Indexes for dumped tables
@@ -417,13 +428,6 @@ ALTER TABLE `product`
   ADD KEY `category_id` (`category_id`);
 
 --
--- Indexes for table `product_sizes`
---
-ALTER TABLE `product_sizes`
-  ADD PRIMARY KEY (`product_id`,`size_id`),
-  ADD KEY `size_id` (`size_id`);
-
---
 -- Indexes for table `return_detail`
 --
 ALTER TABLE `return_detail`
@@ -444,13 +448,13 @@ ALTER TABLE `sizes`
 -- AUTO_INCREMENT for table `borrow_request`
 --
 ALTER TABLE `borrow_request`
-  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `borrow_request_status`
 --
 ALTER TABLE `borrow_request_status`
-  MODIFY `status_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `status_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `categories`
@@ -462,19 +466,19 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=178;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=179;
 
 --
 -- AUTO_INCREMENT for table `return_detail`
 --
 ALTER TABLE `return_detail`
-  MODIFY `return_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `return_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `sizes`
 --
 ALTER TABLE `sizes`
-  MODIFY `size_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `size_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Constraints for dumped tables
@@ -498,13 +502,6 @@ ALTER TABLE `borrow_request_status`
 --
 ALTER TABLE `product`
   ADD CONSTRAINT `product_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`);
-
---
--- Constraints for table `product_sizes`
---
-ALTER TABLE `product_sizes`
-  ADD CONSTRAINT `product_sizes_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`),
-  ADD CONSTRAINT `product_sizes_ibfk_2` FOREIGN KEY (`size_id`) REFERENCES `sizes` (`size_id`);
 
 --
 -- Constraints for table `return_detail`
