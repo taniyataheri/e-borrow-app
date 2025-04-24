@@ -180,7 +180,7 @@ app.post("/users", async (req, res) => {
       }
 
       db.query(
-        "INSERT INTO members (member_id, first_name, last_name, prefix, email, team, phone_number, birthday, username, password, role_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO members (member_id, first_name, last_name, prefix_name, email, team, phone_number, brithday, username, password, role_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
         [
           newId,
           first_name,
@@ -802,7 +802,7 @@ app.put("/borrow/:id/return", (req, res) => {
 app.get("/return-detail/user/:id", (req, res) => {
   const userId = req.params.id;
   const sql = `
-      SELECT 
+     SELECT 
     br.request_id,
     SUM(rd.returned_good) AS returned_good,
     SUM(rd.returned_damaged) AS returned_damaged,
@@ -828,7 +828,14 @@ app.get("/return-detail/user/:id", (req, res) => {
             THEN rtn.full_name 
         ELSE CONCAT(rtn.first_name, ' ', rtn.last_name) 
     END AS returned_by_name,
-    IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name
+    IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
+    br.due_return_date,
+CASE 
+    WHEN MAX(rd.return_date) IS NULL AND br.due_return_date < CURDATE() THEN 'เลยกำหนดและยังไม่คืนของ'
+    WHEN MAX(rd.return_date) > br.due_return_date THEN 'คืนแล้วแต่เลยกำหนด'
+    WHEN MAX(rd.return_date) IS NOT NULL AND MAX(rd.return_date) <= br.due_return_date THEN 'คืนตรงเวลา'
+    ELSE 'ปกติ'
+END AS return_status
 FROM borrow_request br
 LEFT JOIN return_detail rd ON br.request_id = rd.request_id
 JOIN product p ON br.product_id = p.product_id
@@ -845,8 +852,8 @@ GROUP BY
     m.full_name, m.first_name, m.last_name,
     rcv.full_name, rcv.first_name, rcv.last_name,
     rtn.full_name, rtn.first_name, rtn.last_name,
-    s.status_name;
-    `;
+    s.status_name,
+    br.due_return_date`;
   // const sql = `
   //     SELECT
   //         rd.*,
@@ -894,6 +901,7 @@ GROUP BY
   //   `;
   db.query(sql, [userId], (err, result) => {
     if (err) return res.status(500).json({ error: err });
+    console.log("result", result);
     res.json(result);
   });
 });
@@ -901,7 +909,7 @@ GROUP BY
 // ✅ ดึงข้อมูล return ทั้งหมด (สำหรับผู้ดูแล)
 app.get("/return-detail", (req, res) => {
   const sql = `
-        SELECT 
+       SELECT 
     br.request_id,
     SUM(rd.returned_good) AS returned_good,
     SUM(rd.returned_damaged) AS returned_damaged,
@@ -927,7 +935,14 @@ app.get("/return-detail", (req, res) => {
             THEN rtn.full_name 
         ELSE CONCAT(rtn.first_name, ' ', rtn.last_name) 
     END AS returned_by_name,
-    IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name
+    IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
+    br.due_return_date,
+CASE 
+    WHEN MAX(rd.return_date) IS NULL AND br.due_return_date < CURDATE() THEN 'เลยกำหนดและยังไม่คืนของ'
+    WHEN MAX(rd.return_date) > br.due_return_date THEN 'คืนแล้วแต่เลยกำหนด'
+    WHEN MAX(rd.return_date) IS NOT NULL AND MAX(rd.return_date) <= br.due_return_date THEN 'คืนตรงเวลา'
+    ELSE 'ปกติ'
+END AS return_status
 FROM borrow_request br
 LEFT JOIN return_detail rd ON br.request_id = rd.request_id
 JOIN product p ON br.product_id = p.product_id
@@ -935,6 +950,7 @@ JOIN members m ON br.member_id = m.member_id
 LEFT JOIN members rcv ON rd.received_by = rcv.member_id
 LEFT JOIN members rtn ON rd.returned_by = rtn.member_id
 LEFT JOIN borrow_request_status s ON br.request_id = s.request_id
+
 GROUP BY
     br.request_id,
     br.product_id,
@@ -943,43 +959,13 @@ GROUP BY
     m.full_name, m.first_name, m.last_name,
     rcv.full_name, rcv.first_name, rcv.last_name,
     rtn.full_name, rtn.first_name, rtn.last_name,
-    s.status_name;
+    s.status_name,
+    br.due_return_date
     `;
-  // const sql = `
-  //     SELECT rd.*,
-  //       br.product_id,
-  //       p.name AS product_name,
-  //       CASE
-  //         WHEN m.full_name IS NOT NULL AND m.full_name != ''
-  //           THEN m.full_name
-  //         ELSE CONCAT(m.first_name, ' ', m.last_name)
-  //       END AS member_name
-  //     FROM return_detail rd
-  //     JOIN borrow_request br ON rd.request_id = br.request_id
-  //     JOIN product p ON br.product_id = p.product_id
-  //     JOIN members m ON br.member_id = m.member_id
-  //     ORDER BY rd.return_date DESC
-  //   `;
-  // const sql = `
-  //     SELECT rd.*,
-  //       br.product_id,
-  //       p.name AS product_name,
-  //       CASE
-  //         WHEN m.full_name IS NOT NULL AND m.full_name != ''
-  //           THEN m.full_name
-  //         ELSE CONCAT(m.first_name, ' ', m.last_name)
-  //       END AS member_name,
-  //       u.full_name AS returned_by
-  //     FROM return_detail rd
-  //     JOIN borrow_request br ON rd.request_id = br.request_id
-  //     JOIN product p ON br.product_id = p.product_id
-  //     JOIN members m ON br.member_id = m.member_id
-  //     LEFT JOIN users u ON rd.returned_by = u.id
-  //     ORDER BY rd.return_date DESC
-  //   `;
-
+  
   db.query(sql, (err, result) => {
     if (err) return res.status(500).json({ error: err });
+    console.log("result", result);
     res.json(result);
   });
 });
@@ -987,28 +973,40 @@ GROUP BY
 app.get("/borrow/unreturned", (req, res) => {
   const sql = `
       SELECT 
-        b.request_id,
-        b.member_id,
-        m.full_name,
-        m.first_name, 
-        m.last_name,
-        m.team,
-        p.name AS product_name,
-        b.quantity,
-        b.request_date,
-        b.due_return_date,
-        b.purpose,
-        IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name
-      FROM borrow_request b
-      LEFT JOIN members m ON b.member_id = m.member_id
-      LEFT JOIN product p ON b.product_id = p.product_id
-      LEFT JOIN borrow_request_status s ON b.request_id = s.request_id
-      WHERE NOT EXISTS (
-        SELECT 1 FROM return_detail r
-        WHERE r.request_id = b.request_id
-      )
-      AND s.status_name IN ('รับของแล้ว', 'คืนไม่ครบ')  -- ต้องเป็นคำขอที่เคยได้รับของ
-      ORDER BY b.request_id DESC
+    b.request_id,
+    b.member_id,
+    m.full_name,
+    m.first_name, 
+    m.last_name,
+    m.team,
+    p.name AS product_name,
+    b.quantity,
+    b.request_date,
+    b.due_return_date,
+    b.note AS purpose,
+    IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
+    CASE 
+        WHEN r.request_id IS NULL AND b.due_return_date < CURDATE() THEN 'เลยกำหนดและยังไม่คืน'
+        WHEN r.return_date > b.due_return_date THEN 'คืนแล้วแต่เลยกำหนด'
+        ELSE 'ปกติ'
+    END AS return_status
+FROM borrow_request b
+LEFT JOIN members m ON b.member_id = m.member_id
+LEFT JOIN product p ON b.product_id = p.product_id
+LEFT JOIN borrow_request_status s ON b.request_id = s.request_id
+LEFT JOIN (
+    SELECT request_id, MIN(return_date) AS return_date
+    FROM return_detail
+    GROUP BY request_id
+) r ON b.request_id = r.request_id
+WHERE s.status_name IN ('รับของแล้ว', 'คืนไม่ครบ')  -- ต้องเป็นคำขอที่เคยได้รับของ
+  AND (
+        (r.request_id IS NULL AND b.due_return_date < CURDATE())  -- เลยกำหนดแล้วยังไม่คืน
+        OR
+        (r.return_date > b.due_return_date)  -- คืนแล้วแต่เลยกำหนด
+    )
+ORDER BY b.request_id DESC;
+
     `;
 
   db.query(sql, (err, results) => {

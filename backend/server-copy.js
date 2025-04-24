@@ -803,49 +803,59 @@ app.get("/return-detail/user/:id", (req, res) => {
   const userId = req.params.id;
   const sql = `
       SELECT 
-      br.request_id,
-      SUM(rd.returned_good) AS returned_good,
-      SUM(rd.returned_damaged) AS returned_damaged,
-      SUM(rd.returned_lost) AS returned_lost,
-      MAX(rd.return_date) AS return_date,
-      MAX(rd.fine_amount) AS fine_amount,
-      MAX(rd.note) AS note,
-      br.product_id,
-      br.quantity,
-      p.name AS product_name, 
-      CASE 
-          WHEN m.full_name IS NOT NULL AND m.full_name != '' 
-              THEN m.full_name 
-          ELSE CONCAT(m.first_name, ' ', m.last_name) 
-      END AS member_name,
-      CASE 
-          WHEN rcv.full_name IS NOT NULL AND rcv.full_name != '' 
-              THEN rcv.full_name 
-          ELSE CONCAT(rcv.first_name, ' ', rcv.last_name) 
-      END AS received_by_name,
-      CASE 
-          WHEN rtn.full_name IS NOT NULL AND rtn.full_name != '' 
-              THEN rtn.full_name 
-          ELSE CONCAT(rtn.first_name, ' ', rtn.last_name) 
-      END AS returned_by_name,
-      IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name
-      FROM borrow_request br
-      LEFT JOIN return_detail rd ON br.request_id = rd.request_id
-      JOIN product p ON br.product_id = p.product_id
-      JOIN members m ON br.member_id = m.member_id
-      LEFT JOIN members rcv ON rd.received_by = rcv.member_id
-      LEFT JOIN members rtn ON rd.returned_by = rtn.member_id
-      LEFT JOIN borrow_request_status s ON br.request_id = s.request_id
-      WHERE br.member_id = ?
-      GROUP BY
-          br.request_id,
-          br.product_id,
-          br.quantity,
-          p.name,
-          m.full_name, m.first_name, m.last_name,
-          rcv.full_name, rcv.first_name, rcv.last_name,
-          rtn.full_name, rtn.first_name, rtn.last_name,
-          s.status_name;
+    br.request_id,
+    SUM(rd.returned_good) AS returned_good,
+    SUM(rd.returned_damaged) AS returned_damaged,
+    SUM(rd.returned_lost) AS returned_lost,
+    MAX(rd.return_date) AS return_date,
+    MAX(rd.fine_amount) AS fine_amount,
+    MAX(rd.note) AS note,
+    br.product_id,
+    br.quantity,
+    p.name AS product_name, 
+    CASE 
+        WHEN m.full_name IS NOT NULL AND m.full_name != '' 
+            THEN m.full_name 
+        ELSE CONCAT(m.first_name, ' ', m.last_name) 
+    END AS member_name,
+    CASE 
+        WHEN rcv.full_name IS NOT NULL AND rcv.full_name != '' 
+            THEN rcv.full_name 
+        ELSE CONCAT(rcv.first_name, ' ', rcv.last_name) 
+    END AS received_by_name,
+    CASE 
+        WHEN rtn.full_name IS NOT NULL AND rtn.full_name != '' 
+            THEN rtn.full_name 
+        ELSE CONCAT(rtn.first_name, ' ', rtn.last_name) 
+    END AS returned_by_name,
+    IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
+    br.due_return_date,
+    CASE 
+        WHEN MAX(rd.return_date) IS NULL AND br.due_return_date < CURDATE() THEN 'เลยกำหนดและยังไม่คืน'
+        WHEN MAX(rd.return_date) > br.due_return_date THEN 'คืนแล้วแต่เลยกำหนด'
+        ELSE 'ปกติ'
+    END AS return_status
+FROM borrow_request br
+LEFT JOIN return_detail rd ON br.request_id = rd.request_id
+JOIN product p ON br.product_id = p.product_id
+JOIN members m ON br.member_id = m.member_id
+LEFT JOIN members rcv ON rd.received_by = rcv.member_id
+LEFT JOIN members rtn ON rd.returned_by = rtn.member_id
+LEFT JOIN borrow_request_status s ON br.request_id = s.request_id
+WHERE br.member_id = ?
+GROUP BY
+    br.request_id,
+    br.product_id,
+    br.quantity,
+    p.name,
+    m.full_name, m.first_name, m.last_name,
+    rcv.full_name, rcv.first_name, rcv.last_name,
+    rtn.full_name, rtn.first_name, rtn.last_name,
+    s.status_name,
+    br.due_return_date
+HAVING 
+    return_status IN ('เลยกำหนดและยังไม่คืน', 'คืนแล้วแต่เลยกำหนด')
+;
     `;
   // const sql = `
   //     SELECT
@@ -927,7 +937,13 @@ app.get("/return-detail", (req, res) => {
             THEN rtn.full_name 
         ELSE CONCAT(rtn.first_name, ' ', rtn.last_name) 
     END AS returned_by_name,
-    IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name
+    IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
+    br.due_return_date,
+    CASE 
+        WHEN rd.return_date IS NULL AND br.due_return_date < CURDATE() THEN 'เลยกำหนดและยังไม่คืน'
+        WHEN rd.return_date IS NOT NULL AND rd.return_date > br.due_return_date THEN 'คืนแล้วแต่เลยกำหนด'
+        ELSE 'ปกติ'
+    END AS return_status
 FROM borrow_request br
 LEFT JOIN return_detail rd ON br.request_id = rd.request_id
 JOIN product p ON br.product_id = p.product_id
@@ -943,7 +959,8 @@ GROUP BY
     m.full_name, m.first_name, m.last_name,
     rcv.full_name, rcv.first_name, rcv.last_name,
     rtn.full_name, rtn.first_name, rtn.last_name,
-    s.status_name;
+    s.status_name,
+    br.due_return_date;;
     `;
   // const sql = `
   //     SELECT rd.*,

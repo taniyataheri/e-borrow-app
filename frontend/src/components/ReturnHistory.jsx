@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import Navbar from "../components/Navbar/Navbar"
+import Navbar from "../components/Navbar/Navbar";
 import { AuthContext } from "../context/authContext";
 import axios from "axios";
 import { Container, Table, Card } from "react-bootstrap";
@@ -15,13 +15,13 @@ function ReturnHistory() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const [unreturned, setUnreturned] = useState([]);
+  // const [unreturned, setUnreturned] = useState([]);
 
-  useEffect(() => {
-    axios.get("http://localhost:3001/borrow/unreturned")
-      .then(res => setUnreturned(res.data))
-      .catch(err => console.error("Error fetching unreturned:", err));
-  }, []);
+  // useEffect(() => {
+  //   axios.get("http://localhost:3001/borrow/unreturned")
+  //     .then(res => setUnreturned(res.data))
+  //     .catch(err => console.error("Error fetching unreturned:", err));
+  // }, []);
 
   useEffect(() => {
     if (!user || !token) return;
@@ -34,10 +34,14 @@ function ReturnHistory() {
         ? "http://localhost:3001/return-detail"
         : `http://localhost:3001/return-detail/user/${user.id}`;
 
-    axios.get(url, {
-      headers: { Authorization: token },
-    })
-      .then((res) => setReturnList(res.data))
+    console.log("ข้อมูลที่ได้:", url);
+    axios
+      .get(url, {
+        headers: { Authorization: token },
+      })
+      .then((data) => {
+        console.log("ข้อมูลที่ได้:", data);
+      })
       .catch((err) => console.error("เกิดข้อผิดพลาด:", err));
   };
 
@@ -46,23 +50,24 @@ function ReturnHistory() {
       dateStyle: "short",
       timeStyle: "short",
     });
-// console.log("🔍 searchTerm:", returnList);
+  // console.log("🔍 searchTerm:", returnList);
   const filteredData = Array.isArray(returnList)
-  
     ? returnList.filter((r) => {
-        // console.log("🔍 searchTerm:", r);
-        const totalReturned = r.returned_good + r.returned_damaged + r.returned_lost;
+        console.log("return:", r);
+        const totalReturned =
+          r.returned_good + r.returned_damaged + r.returned_lost;
         const total = r.quantity;
         const status = r.status_name || "-";
+        const return_status = r.return_status || "-";
         const matchTab =
           activeTab === "all"
             ? totalReturned === total
             : activeTab === "partial"
-            ? (r.returned_damaged > 0 || r.returned_lost > 0)
+            ? r.returned_damaged > 0 || r.returned_lost > 0
             : activeTab === "unreturned"
             ? status === "คืนไม่ครบ"
             : activeTab === "overdue"
-            ? status === "เลยกำหนดคืน"
+            ? return_status === ("คืนแล้วแต่เลยกำหนด" || "คืนแล้วแต่เลยกำหนด")
             : true;
 
         const searchMatch =
@@ -80,7 +85,6 @@ function ReturnHistory() {
   );
   // console.log("📜 paginatedList:", paginatedList);
 
-
   const calculateFine = (dueDate, quantity) => {
     const due = new Date(dueDate);
     const now = new Date();
@@ -91,18 +95,27 @@ function ReturnHistory() {
 
   const formatDDate = (dateStr) => {
     const date = new Date(dateStr);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear() + 543;
-  
+
     return `${day}/${month}/${year}`;
   };
   return (
     <div className="d-flex flex-column flex-lg-row">
       <Navbar />
-      <Container className="py-4" style={{ backgroundColor: "#F5F5F5", minHeight: "100vh", marginTop: "80px" }}>
+      <Container
+        className="py-4"
+        style={{
+          backgroundColor: "#F5F5F5",
+          minHeight: "100vh",
+          marginTop: "80px",
+        }}
+      >
         <Card className="p-4 w-100">
-          <h4 className="text-center mb-3" style={{ color: "#2e7d32" }}>ประวัติการคืนทรัพย์สิน</h4>
+          <h4 className="text-center mb-3" style={{ color: "#2e7d32" }}>
+            ประวัติการคืนทรัพย์สิน
+          </h4>
           <Card.Body>
             <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
               <div className="mb-2" style={{ width: "350px" }}>
@@ -118,10 +131,38 @@ function ReturnHistory() {
                 />
               </div>
               <div className="btn-group mb-2">
-                <button className={`btn btn-outline-success ${activeTab === "all" ? "active" : ""}`} onClick={() => setActiveTab("all")}>📦 คืนครบแล้ว</button>
-                <button className={`btn btn-outline-warning ${activeTab === "partial" ? "active" : ""}`} onClick={() => setActiveTab("partial")}>🧩 ชำรุด/สูญหาย</button>
-                <button className={`btn btn-outline-danger ${activeTab === "unreturned" ? "active" : ""}`} onClick={() => setActiveTab("unreturned")}>❌ ค้างคืน</button>
-                <button className={`btn btn-outline-dark ${activeTab === "overdue" ? "active" : ""}`} onClick={() => setActiveTab("overdue")}>📍 เลยกำหนดคืน</button>
+                <button
+                  className={`btn btn-outline-success ${
+                    activeTab === "all" ? "active" : ""
+                  }`}
+                  onClick={() => setActiveTab("all")}
+                >
+                  📦 คืนครบแล้ว
+                </button>
+                <button
+                  className={`btn btn-outline-warning ${
+                    activeTab === "partial" ? "active" : ""
+                  }`}
+                  onClick={() => setActiveTab("partial")}
+                >
+                  🧩 ชำรุด/สูญหาย
+                </button>
+                <button
+                  className={`btn btn-outline-danger ${
+                    activeTab === "unreturned" ? "active" : ""
+                  }`}
+                  onClick={() => setActiveTab("unreturned")}
+                >
+                  ❌ ค้างคืน
+                </button>
+                <button
+                  className={`btn btn-outline-dark ${
+                    activeTab === "overdue" ? "active" : ""
+                  }`}
+                  onClick={() => setActiveTab("overdue")}
+                >
+                  📍 เลยกำหนดคืน
+                </button>
               </div>
             </div>
 
@@ -141,11 +182,13 @@ function ReturnHistory() {
                   <th>วัน-เวลา</th>
                 </tr>
               </thead>
-              {(activeTab === "all") && (
+              {activeTab === "all" && (
                 <tbody>
                   {paginatedList.length === 0 ? (
                     <tr>
-                      <td colSpan="11" className="text-center text-muted">ไม่พบข้อมูล</td>
+                      <td colSpan="11" className="text-center text-muted">
+                        ไม่พบข้อมูล
+                      </td>
                     </tr>
                   ) : (
                     paginatedList.map((r, idx) => (
@@ -167,11 +210,13 @@ function ReturnHistory() {
                 </tbody>
               )}
 
-              {(activeTab === "partial") && (
+              {activeTab === "partial" && (
                 <tbody>
                   {paginatedList.length === 0 ? (
                     <tr>
-                      <td colSpan="11" className="text-center text-muted">ไม่พบข้อมูล</td>
+                      <td colSpan="11" className="text-center text-muted">
+                        ไม่พบข้อมูล
+                      </td>
                     </tr>
                   ) : (
                     paginatedList.map((r, idx) => (
@@ -197,7 +242,9 @@ function ReturnHistory() {
                 <tbody>
                   {paginatedList.length === 0 ? (
                     <tr>
-                      <td colSpan="11" className="text-center text-muted">ไม่พบรายการค้างคืน</td>
+                      <td colSpan="11" className="text-center text-muted">
+                        ไม่พบรายการค้างคืน
+                      </td>
                     </tr>
                   ) : (
                     paginatedList.map((r, idx) => (
@@ -223,7 +270,9 @@ function ReturnHistory() {
                 <tbody>
                   {paginatedList.length === 0 ? (
                     <tr>
-                      <td colSpan="11" className="text-center text-muted">ไม่พบรายการค้างคืน</td>
+                      <td colSpan="11" className="text-center text-muted">
+                        ไม่พบรายการค้างคืน
+                      </td>
                     </tr>
                   ) : (
                     paginatedList.map((r, idx) => (
@@ -244,14 +293,23 @@ function ReturnHistory() {
                   )}
                 </tbody>
               )}
-
             </Table>
 
             <nav className="d-flex justify-content-center mt-4">
               <ul className="pagination">
                 {Array.from({ length: totalPages }, (_, i) => (
-                  <li key={i} className={`page-item ${currentPage === i + 1 ? "active" : ""}`}>
-                    <button className="page-link" onClick={() => setCurrentPage(i + 1)}>{i + 1}</button>
+                  <li
+                    key={i}
+                    className={`page-item ${
+                      currentPage === i + 1 ? "active" : ""
+                    }`}
+                  >
+                    <button
+                      className="page-link"
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
+                      {i + 1}
+                    </button>
                   </li>
                 ))}
               </ul>
