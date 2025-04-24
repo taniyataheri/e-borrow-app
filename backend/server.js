@@ -112,6 +112,15 @@ app.delete("/products/:id", (req, res) => {
   });
 });
 
+app.get("/product_sizes", (req, res) => {
+  db.query("SELECT * FROM sizes", (err, results) => {
+    if (err) {
+      res.status(500).send(err);
+    } else {
+      res.json(results);
+    }
+  });
+});
 // ฟังก์ชันสร้าง ID ใหม่
 const generateNewId = (team, callback) => {
   db.query(

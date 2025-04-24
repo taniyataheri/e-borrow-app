@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
-import { Container, Card, Form, Button, Row, Col, Modal } from "react-bootstrap";
+import {
+  Container,
+  Card,
+  Form,
+  Button,
+  Row,
+  Col,
+  Modal,
+} from "react-bootstrap";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { AuthContext } from "../../context/authContext";
@@ -12,38 +20,39 @@ const paginate = (items, currentPage, itemsPerPage) => {
   return items.slice(startIndex, endIndex);
 };
 
-const renderSizeOptions = (category_id) => {
-  if (!category_id) {
-    return <option value="">กรุณาเลือกประเภทก่อน</option>;
-  }
+// const renderSizeOptions = (category_id) => {
+//   if (!category_id) {
+//     return <option value="">กรุณาเลือกประเภทก่อน</option>;
+//   }
 
-  if (["1", "2", "3"].includes(category_id)) {
-    return (
-      <>
-        <option value="">เลือกขนาด</option>
-        <option value="S">S</option>
-        <option value="M">M</option>
-        <option value="L">L</option>
-        <option value="XL">XL</option>
-        <option value="Free Size">Free Size</option>
-      </>
-    );
-  } else if (category_id === "4") {
-    return (
-      <>
-        <option value="">เลือกความยาว</option>
-        <option value="สั้น">สั้น</option>
-        <option value="ยาว">ยาว</option>
-      </>
-    );
-  } else {
-    return (
-      <>
-        <option value="ไม่ระบุ">ไม่ระบุ</option>
-      </>
-    );
-  }
-};
+//   if (["1", "2", "3"].includes(category_id)) {
+//     return (
+//       <>
+//         <option value="">เลือกขนาด</option>
+//         <option value="S">S</option>
+//         <option value="M">M</option>
+//         <option value="L">L</option>
+//         <option value="XL">XL</option>
+//         <option value="Free Size">Free Size</option>
+//       </>
+//     );
+//   } else if (category_id === "4") {
+//     return (
+//       <>
+//         <option value="">เลือกความยาว</option>
+//         <option value="สั้น">สั้น</option>
+//         <option value="ยาว">ยาว</option>
+//       </>
+//     );
+//   } else {
+//     return (
+//       <>
+//         <option value="ไม่ระบุ">ไม่ระบุ</option>
+//       </>
+//     );
+//   }
+// };
+
 
 function Home() {
   const [products, setProducts] = useState([]);
@@ -109,7 +118,50 @@ function Home() {
     }
     setFormMaintenance({ ...formMaintenance, [e.target.name]: e.target.value });
   };
-
+  const [productSize, setProductSize] = useState([]);
+  
+  // โหลดขนาดจาก API แค่ครั้งเดียว
+  useEffect(() => {
+    axios.get("http://localhost:3001/product_sizes")
+      .then((res) => setProductSize(res.data))
+      .catch((err) => console.error("โหลดขนาดไม่สำเร็จ", err));
+  }, []);
+  
+  const renderSizeOptions = (category_id) => {
+  
+    if (!category_id) {
+      return <option value="">กรุณาเลือกประเภทก่อน</option>;
+    }
+  
+    if (["1", "2", "3"].includes(category_id)) {
+      return (
+        <>
+          <option value="">เลือกขนาด</option>
+          {productSize.map((item) => (
+            <option key={item.size_id} value={item.size_label}>
+              {item.size_label}
+            </option>
+          ))}
+        </>
+      );
+    } else if (category_id === "4") {
+      return (
+        <>
+          <option value="">เลือกความยาว</option>
+          <option value="สั้น">สั้น</option>
+          <option value="ยาว">ยาว</option>
+        </>
+      );
+    } else {
+      return (
+        <>
+          <option value="ไม่ระบุ">ไม่ระบุ</option>
+        </>
+      );
+    }
+  };
+  
+  
   const navigate = useNavigate();
 
   const auth = useContext(AuthContext);
@@ -147,10 +199,28 @@ function Home() {
   };
 
   const handleAddProduct = () => {
-    const { name, color, qta, size, price_per_item, category_id, status, image } = newProduct;
+    const {
+      name,
+      color,
+      qta,
+      size,
+      price_per_item,
+      category_id,
+      status,
+      image,
+    } = newProduct;
 
     // ตรวจสอบข้อมูลครบไหม
-    if (!name || !color || !qta || !size || !price_per_item || !category_id || !status || !image) {
+    if (
+      !name ||
+      !color ||
+      !qta ||
+      !size ||
+      !price_per_item ||
+      !category_id ||
+      !status ||
+      !image
+    ) {
       const missing = [];
       if (!name) missing.push("ชื่อ");
       if (!color) missing.push("สี");
@@ -226,13 +296,18 @@ function Home() {
 
   const fetchBorrow = () => {
     axios.get("http://localhost:3001/borrow").then((response) => {
-      const pendingBorrows = response.data.filter((item) => item.status_name === "รอการอนุมัติ");
+      const pendingBorrows = response.data.filter(
+        (item) => item.status_name === "รอการอนุมัติ"
+      );
 
       // ดึงค่าจาก sessionStorage
       const lastNotifiedCount = sessionStorage.getItem("notifiedCount");
 
       if (user.role === 1) {
-        if (pendingBorrows.length > 0 && pendingBorrows.length !== Number(lastNotifiedCount)) {
+        if (
+          pendingBorrows.length > 0 &&
+          pendingBorrows.length !== Number(lastNotifiedCount)
+        ) {
           // อัปเดตค่าใหม่ใน sessionStorage
           sessionStorage.setItem("notifiedCount", pendingBorrows.length);
 
@@ -260,6 +335,9 @@ function Home() {
     axios.get("http://localhost:3001/categories").then((response) => {
       setCategories(response.data);
     });
+    axios.get("http://localhost:3001/product_sizes").then((response) => {
+      setProductSize(response.data);
+    });
   };
 
   const deleteProduct = (id) => {
@@ -269,10 +347,21 @@ function Home() {
   };
 
   const updateProduct = (id) => {
-    axios.put(`http://localhost:3001/products/${id}`, { name, color, qta, size, price, category_id, status, image }).then(() => {
-      fetchProducts();
-      setShow(false);
-    });
+    axios
+      .put(`http://localhost:3001/products/${id}`, {
+        name,
+        color,
+        qta,
+        size,
+        price,
+        category_id,
+        status,
+        image,
+      })
+      .then(() => {
+        fetchProducts();
+        setShow(false);
+      });
   };
 
   const borrowProduct = () => {
@@ -322,15 +411,17 @@ function Home() {
       return;
     }
 
-    axios.post(`http://localhost:3001/maintenance`, formMaintenance).then(() => {
-      setShowMaintenance(false);
-      Swal.fire({
-        icon: "success",
-        title: "แจ้งซ่อมสำเร็จ",
-        text: "ระบบได้รับการแจ้งซ่อมแล้ว",
-        confirmButtonColor: "#2e7d32",
+    axios
+      .post(`http://localhost:3001/maintenance`, formMaintenance)
+      .then(() => {
+        setShowMaintenance(false);
+        Swal.fire({
+          icon: "success",
+          title: "แจ้งซ่อมสำเร็จ",
+          text: "ระบบได้รับการแจ้งซ่อมแล้ว",
+          confirmButtonColor: "#2e7d32",
+        });
       });
-    });
   };
 
   const handleClose = () => setShow(false);
@@ -386,19 +477,32 @@ function Home() {
     const name = product.name?.toLowerCase() || "";
     const color = product.color?.toLowerCase() || "";
 
-    return name.includes(search.toLowerCase()) || color.includes(search.toLowerCase());
+    return (
+      name.includes(search.toLowerCase()) ||
+      color.includes(search.toLowerCase())
+    );
   });
 
   const today = new Date().toISOString().split("T")[0];
 
-  const displayName = user?.full_name && user.full_name.trim() !== "" ? user.full_name : user?.email || "";
+  const displayName =
+    user?.full_name && user.full_name.trim() !== ""
+      ? user.full_name
+      : user?.email || "";
   const displayRole = user?.role === 1 ? "ผู้ดูแลระบบ" : "ผู้ใช้งานทั่วไป";
 
   return (
     <>
       <Navbar />
       <div className="d-flex flex-column flex-lg-row">
-        <Container className="py-4" style={{ backgroundColor: "#F5F5F5", minHeight: "100vh", marginTop: "80px" }}>
+        <Container
+          className="py-4"
+          style={{
+            backgroundColor: "#F5F5F5",
+            minHeight: "100vh",
+            marginTop: "80px",
+          }}
+        >
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 mx-4">
             <div className="d-flex align-items-center flex-wrap gap-3">
               <Form.Group controlId="search" style={{ maxWidth: "400px" }}>
@@ -435,10 +539,17 @@ function Home() {
                     resetNewProduct();
                     setShowAdd(true);
                   }}
-                  onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#27682a")}
-                  onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#2e7d32")}
+                  onMouseOver={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#27682a")
+                  }
+                  onMouseOut={(e) =>
+                    (e.currentTarget.style.backgroundColor = "#2e7d32")
+                  }
                 >
-                  <i className="bi bi-plus-circle" style={{ fontSize: "20px" }}></i>
+                  <i
+                    className="bi bi-plus-circle"
+                    style={{ fontSize: "20px" }}
+                  ></i>
                   เพิ่มทรัพย์สิน
                 </Button>
               )}
@@ -446,21 +557,34 @@ function Home() {
 
             {/* คอลัมน์ขวา: ข้อมูลบัญชีผู้ใช้ */}
             <div className="d-flex align-items-center gap-2 user-info-box">
-              <i className="bi bi-person-circle" style={{ fontSize: "24px", color: "#2e7d32" }}></i>
+              <i
+                className="bi bi-person-circle"
+                style={{ fontSize: "24px", color: "#2e7d32" }}
+              ></i>
               <div>
                 <strong style={{ fontSize: "16px" }}>{displayName}</strong>
-                <div style={{ fontSize: "14px", color: "#666" }}>{displayRole}</div>
+                <div style={{ fontSize: "14px", color: "#666" }}>
+                  {displayRole}
+                </div>
               </div>
             </div>
           </div>
 
           {categories.map((category) => {
-            const filteredByCategory = filteredProducts.filter((product) => product.category_id === category.category_id);
+            const filteredByCategory = filteredProducts.filter(
+              (product) => product.category_id === category.category_id
+            );
 
-            const totalPages = Math.ceil(filteredByCategory.length / itemsPerPage);
-            const currentPage = currentPageByCategory[category.category_id] || 1;
+            const totalPages = Math.ceil(
+              filteredByCategory.length / itemsPerPage
+            );
+            const currentPage =
+              currentPageByCategory[category.category_id] || 1;
             const startIndex = (currentPage - 1) * itemsPerPage;
-            const paginatedProducts = filteredByCategory.slice(startIndex, startIndex + itemsPerPage);
+            const paginatedProducts = filteredByCategory.slice(
+              startIndex,
+              startIndex + itemsPerPage
+            );
 
             return (
               <div key={category.category_id} className="mt-4 mx-4">
@@ -468,7 +592,15 @@ function Home() {
                   <div className="category-label-bar" />
                   <div className="category-label-text">
                     <h4>{category.name}</h4>
-                    <span>({filteredProducts.filter((p) => p.category_id === category.category_id).length} รายการ)</span>
+                    <span>
+                      (
+                      {
+                        filteredProducts.filter(
+                          (p) => p.category_id === category.category_id
+                        ).length
+                      }{" "}
+                      รายการ)
+                    </span>
                   </div>
                 </div>
 
@@ -484,12 +616,19 @@ function Home() {
                       >
                         <Card.Img
                           variant="top"
-                          src={product.image || "https://placehold.co/300x280?text=No+Image"}
+                          src={
+                            product.image ||
+                            "https://placehold.co/300x280?text=No+Image"
+                          }
                           style={{ height: "280px" }}
                           onError={(e) => {
-                            if (e.target.src !== "https://placehold.co/300x280?text=No+Image") {
+                            if (
+                              e.target.src !==
+                              "https://placehold.co/300x280?text=No+Image"
+                            ) {
                               e.target.onerror = null;
-                              e.target.src = "https://placehold.co/300x280?text=No+Image";
+                              e.target.src =
+                                "https://placehold.co/300x280?text=No+Image";
                             }
                           }}
                         />
@@ -497,22 +636,47 @@ function Home() {
                         <Card.Body>
                           <Card.Title>{product.name}</Card.Title>
                           <Card.Text>
-                            มูลค่า/ชิ้น: {product.price_per_item} บาท, จำนวน: {product.quantity}
+                            มูลค่า/ชิ้น: {product.price_per_item} บาท, จำนวน:{" "}
+                            {product.quantity}
                             <br />
-                            สี: {product.color || "-"}, ขนาด: {product.size || "-"}
+                            สี: {product.color || "-"}, ขนาด:{" "}
+                            {product.size || "-"}
                           </Card.Text>
 
-                          <Card.Text className={product.status === "พร้อมใช้งาน" ? "text-success" : product.status === "รอซัก" ? "text-warning" : "text-danger"}>{product.status}</Card.Text>
+                          <Card.Text
+                            className={
+                              product.status === "พร้อมใช้งาน"
+                                ? "text-success"
+                                : product.status === "รอซัก"
+                                ? "text-warning"
+                                : "text-danger"
+                            }
+                          >
+                            {product.status}
+                          </Card.Text>
 
                           {role === 2 ? (
                             <Col className="d-flex justify-content-center">
-                              <Button className="mx-1" variant={product.status === "พร้อมใช้งาน" ? "success" : "secondary"} disabled={product.status !== "พร้อมใช้งาน"} onClick={() => handleShowBorrow(product)}>
+                              <Button
+                                className="mx-1"
+                                variant={
+                                  product.status === "พร้อมใช้งาน"
+                                    ? "success"
+                                    : "secondary"
+                                }
+                                disabled={product.status !== "พร้อมใช้งาน"}
+                                onClick={() => handleShowBorrow(product)}
+                              >
                                 ยืมทรัพย์สิน
                               </Button>
                             </Col>
                           ) : role === 1 ? (
                             <Col className="d-flex justify-content-center">
-                              <Button className="mx-1" variant="info" onClick={() => handleShow(product)}>
+                              <Button
+                                className="mx-1"
+                                variant="info"
+                                onClick={() => handleShow(product)}
+                              >
                                 แก้ไข
                               </Button>
                               <Button
@@ -574,7 +738,11 @@ function Home() {
                     {/* Page Numbers */}
                     {Array.from({ length: totalPages }, (_, i) => i + 1)
                       .filter((page) => {
-                        return page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1);
+                        return (
+                          page === 1 ||
+                          page === totalPages ||
+                          (page >= currentPage - 1 && page <= currentPage + 1)
+                        );
                       })
                       .reduce((acc, page, idx, arr) => {
                         if (idx > 0 && page - arr[idx - 1] > 1) {
@@ -591,7 +759,11 @@ function Home() {
                         ) : (
                           <Button
                             key={item}
-                            variant={currentPage === item ? "primary" : "outline-secondary"}
+                            variant={
+                              currentPage === item
+                                ? "primary"
+                                : "outline-secondary"
+                            }
                             className="mx-1"
                             onClick={() =>
                               setCurrentPageByCategory((prev) => ({
@@ -612,7 +784,10 @@ function Home() {
                       onClick={() =>
                         setCurrentPageByCategory((prev) => ({
                           ...prev,
-                          [category.category_id]: Math.min(currentPage + 1, totalPages),
+                          [category.category_id]: Math.min(
+                            currentPage + 1,
+                            totalPages
+                          ),
                         }))
                       }
                       disabled={currentPage === totalPages}
@@ -634,33 +809,61 @@ function Home() {
                 <Form>
                   <Form.Group className="mb-3">
                     <Form.Label>รูป</Form.Label>
-                    <Form.Control type="text" defaultValue={selectedProduct.image} onChange={(e) => setImage(e.target.value)} />
+                    <Form.Control
+                      type="text"
+                      defaultValue={selectedProduct.image}
+                      onChange={(e) => setImage(e.target.value)}
+                    />
                   </Form.Group>
                   <Form.Group className="mb-3">
                     <Form.Label>ชื่อ</Form.Label>
-                    <Form.Control type="text" defaultValue={selectedProduct.name} onChange={(e) => setName(e.target.value)} />
+                    <Form.Control
+                      type="text"
+                      defaultValue={selectedProduct.name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
                   </Form.Group>
                   <Form.Group className="mb-3">
                     <Form.Label>ราคาต่อชิ้น</Form.Label>
-                    <Form.Control type="number" defaultValue={selectedProduct.price_per_item} onChange={(e) => setPrice(e.target.value)} />
+                    <Form.Control
+                      type="number"
+                      defaultValue={selectedProduct.price_per_item}
+                      onChange={(e) => setPrice(e.target.value)}
+                    />
                   </Form.Group>
                   <Form.Group className="mb-3">
                     <Form.Label>จำนวน</Form.Label>
-                    <Form.Control type="number" defaultValue={selectedProduct.quantity} onChange={(e) => setQta(e.target.value)} />
+                    <Form.Control
+                      type="number"
+                      defaultValue={selectedProduct.quantity}
+                      onChange={(e) => setQta(e.target.value)}
+                    />
                   </Form.Group>
                   <Form.Group className="mb-3">
                     <Form.Label>สี</Form.Label>
-                    <Form.Control type="text" defaultValue={selectedProduct.color ? selectedProduct.color : "-"} onChange={(e) => setColor(e.target.value)} />
+                    <Form.Control
+                      type="text"
+                      defaultValue={
+                        selectedProduct.color ? selectedProduct.color : "-"
+                      }
+                      onChange={(e) => setColor(e.target.value)}
+                    />
                   </Form.Group>
                   <Form.Group className="mb-3">
                     <Form.Label>ขนาด</Form.Label>
-                    <Form.Select value={size} onChange={(e) => setSize(e.target.value)}>
+                    <Form.Select
+                      value={size}
+                      onChange={(e) => setSize(e.target.value)}
+                    >
                       {renderSizeOptions(category_id)} {/* ส่ง category_id เข้าไป */}
                     </Form.Select>
                   </Form.Group>
                   <Form.Group className="mb-3">
                     <Form.Label>สถานะ</Form.Label>
-                    <Form.Select defaultValue={selectedProduct.status} onChange={(e) => setStatus(e.target.value)}>
+                    <Form.Select
+                      defaultValue={selectedProduct.status}
+                      onChange={(e) => setStatus(e.target.value)}
+                    >
                       <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
                       <option value="ไม่พร้อมใช้งาน">ไม่พร้อมใช้งาน</option>
                       <option value="รอซ่อมเเซม">รอซ่อมเเซม</option>
@@ -720,33 +923,66 @@ function Home() {
                 {/* ชื่อทรัพย์สิน (แสดงอย่างเดียว) */}
                 <Form.Group className="mb-3">
                   <Form.Label>ชื่อทรัพย์สิน</Form.Label>
-                  <Form.Control type="text" value={selectedProduct?.name || "-"} readOnly />
+                  <Form.Control
+                    type="text"
+                    value={selectedProduct?.name || "-"}
+                    readOnly
+                  />
                 </Form.Group>
 
                 {/* จำนวนที่ต้องการยืม */}
                 <Form.Group className="mb-3">
                   <Form.Label>จำนวนที่ต้องการยืม</Form.Label>
-                  <Form.Control type="number" name="quantity" min="1" max={selectedProduct?.quantity || 1} value={formBorrow.quantity} onChange={handleChangeBorrow} />
-                  <Form.Text muted>มีทั้งหมด {selectedProduct?.quantity || 0} รายการ</Form.Text>
+                  <Form.Control
+                    type="number"
+                    name="quantity"
+                    min="1"
+                    max={selectedProduct?.quantity || 1}
+                    value={formBorrow.quantity}
+                    onChange={handleChangeBorrow}
+                  />
+                  <Form.Text muted>
+                    มีทั้งหมด {selectedProduct?.quantity || 0} รายการ
+                  </Form.Text>
                 </Form.Group>
 
                 {/* วันที่ยืม */}
                 <Form.Group className="mb-3">
                   <Form.Label>วันที่ยืม</Form.Label>
-                  <Form.Control type="date" name="request_date" min={new Date().toISOString().split("T")[0]} value={formBorrow.request_date} onChange={handleChangeBorrow} />
+                  <Form.Control
+                    type="date"
+                    name="request_date"
+                    min={new Date().toISOString().split("T")[0]}
+                    value={formBorrow.request_date}
+                    onChange={handleChangeBorrow}
+                  />
                 </Form.Group>
 
                 {/* กำหนดคืน (คำนวณอัตโนมัติจาก request_date + 7 วัน) */}
                 <Form.Group className="mb-3">
                   <Form.Label>กำหนดคืน</Form.Label>
-                  <Form.Control type="date" name="due_return_date" value={formBorrow.due_return_date} readOnly />
-                  <Form.Text muted>ระบบจะคำนวณกำหนดคืนให้อัตโนมัติ (7 วันหลังยืม)</Form.Text>
+                  <Form.Control
+                    type="date"
+                    name="due_return_date"
+                    value={formBorrow.due_return_date}
+                    readOnly
+                  />
+                  <Form.Text muted>
+                    ระบบจะคำนวณกำหนดคืนให้อัตโนมัติ (7 วันหลังยืม)
+                  </Form.Text>
                 </Form.Group>
 
                 {/* วัตถุประสงค์ในการยืม */}
                 <Form.Group className="mb-3">
                   <Form.Label>วัตถุประสงค์การยืม</Form.Label>
-                  <Form.Control as="textarea" rows={2} name="note" placeholder="ระบุวัตถุประสงค์ เช่น ใช้ในกิจกรรม A, ซ้อมการแสดง ฯลฯ" value={formBorrow.note} onChange={handleChangeBorrow} />
+                  <Form.Control
+                    as="textarea"
+                    rows={2}
+                    name="note"
+                    placeholder="ระบุวัตถุประสงค์ เช่น ใช้ในกิจกรรม A, ซ้อมการแสดง ฯลฯ"
+                    value={formBorrow.note}
+                    onChange={handleChangeBorrow}
+                  />
                 </Form.Group>
               </Form>
             </Modal.Body>
@@ -769,15 +1005,30 @@ function Home() {
                 <Form>
                   <Form.Group className="mb-3">
                     <Form.Label>จำนวน</Form.Label>
-                    <Form.Control type="number" name="quantity" min="1" max={selectedProduct.quantity} onChange={handleChangeMaintenance} />
+                    <Form.Control
+                      type="number"
+                      name="quantity"
+                      min="1"
+                      max={selectedProduct.quantity}
+                      onChange={handleChangeMaintenance}
+                    />
                   </Form.Group>
                   <Form.Group className="mb-3">
                     <Form.Label>วันที่แจ้ง</Form.Label>
-                    <Form.Control type="date" name="maintenance_date" min={today} onChange={handleChangeMaintenance} />
+                    <Form.Control
+                      type="date"
+                      name="maintenance_date"
+                      min={today}
+                      onChange={handleChangeMaintenance}
+                    />
                   </Form.Group>
                   <Form.Group className="mb-3">
                     <Form.Label>รายละเอียด</Form.Label>
-                    <Form.Control type="text" name="description" onChange={handleChangeMaintenance} />
+                    <Form.Control
+                      type="text"
+                      name="description"
+                      onChange={handleChangeMaintenance}
+                    />
                   </Form.Group>
                 </Form>
               </Modal.Body>
@@ -800,15 +1051,27 @@ function Home() {
               <Form>
                 <Form.Group className="mb-3">
                   <Form.Label>ชื่อทรัพย์สิน</Form.Label>
-                  <Form.Control type="text" name="name" value={newProduct.name} onChange={handleChangeNewProduct} />
+                  <Form.Control
+                    type="text"
+                    name="name"
+                    value={newProduct.name}
+                    onChange={handleChangeNewProduct}
+                  />
                 </Form.Group>
 
                 <Form.Group className="mb-3">
                   <Form.Label>ประเภท</Form.Label>
-                  <Form.Select name="category_id" value={newProduct.category_id} onChange={handleChangeNewProduct}>
+                  <Form.Select
+                    name="category_id"
+                    value={newProduct.category_id}
+                    onChange={handleChangeNewProduct}
+                  >
                     <option value="">เลือกประเภท</option>
                     {categories.map((category) => (
-                      <option key={category.category_id} value={category.category_id}>
+                      <option
+                        key={category.category_id}
+                        value={category.category_id}
+                      >
                         {category.name}
                       </option>
                     ))}
@@ -817,14 +1080,23 @@ function Home() {
 
                 <Form.Group className="mb-3">
                   <Form.Label>ขนาด</Form.Label>
-                  <Form.Select name="size" value={newProduct.size} onChange={handleChangeNewProduct}>
+                  <Form.Select
+                    name="size"
+                    value={newProduct.size}
+                    onChange={handleChangeNewProduct}
+                  >
                     {renderSizeOptions(newProduct.category_id)}
                   </Form.Select>
                 </Form.Group>
 
                 <Form.Group className="mb-3">
                   <Form.Label>สี</Form.Label>
-                  <Form.Control type="text" name="color" value={newProduct.color} onChange={handleChangeNewProduct} />
+                  <Form.Control
+                    type="text"
+                    name="color"
+                    value={newProduct.color}
+                    onChange={handleChangeNewProduct}
+                  />
                 </Form.Group>
 
                 <Form.Group className="mb-3">
@@ -878,7 +1150,11 @@ function Home() {
 
                 <Form.Group className="mb-3">
                   <Form.Label>สถานะ</Form.Label>
-                  <Form.Select name="status" value={newProduct.status} onChange={handleChangeNewProduct}>
+                  <Form.Select
+                    name="status"
+                    value={newProduct.status}
+                    onChange={handleChangeNewProduct}
+                  >
                     <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
                     <option value="ไม่พร้อมใช้งาน">ไม่พร้อมใช้งาน</option>
                     <option value="รอซ่อมเเซม">รอซ่อมเเซม</option>
@@ -888,7 +1164,12 @@ function Home() {
 
                 <Form.Group className="mb-3">
                   <Form.Label>URL รูปภาพ</Form.Label>
-                  <Form.Control type="text" name="image" value={newProduct.image} onChange={handleChangeNewProduct} />
+                  <Form.Control
+                    type="text"
+                    name="image"
+                    value={newProduct.image}
+                    onChange={handleChangeNewProduct}
+                  />
                 </Form.Group>
               </Form>
             </Modal.Body>
