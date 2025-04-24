@@ -226,7 +226,7 @@ function History() {
 
   const filteredHistory = history.filter((his) => {
     console.log(his); // ✅ ตรวจสอบว่าข้อมูลมาครบไหม
-    const allowedStatuses = ["รอการอนุมัติ", "อนุมัติแล้ว" , "ผู้ยืมได้รับของแล้ว" , "ถูกยกเลิก" , "คืนไม่ครบ"];
+    const allowedStatuses = ["รอการอนุมัติ", "อนุมัติแล้ว" , "ผู้ยืมได้รับของแล้ว" , "ถูกยกเลิก" , "คืนไม่ครบ" , "เลยกำหนดคืน"];
     // const allowedStatuses = ["รอการอนุมัติ", "อนุมัติแล้ว", "ผู้ยืมได้รับของแล้ว", "รับของแล้ว" , "คืนไม่ครบ", "คืนของแล้ว"];
     const matchStatus = allowedStatuses.includes(his.status_name);
 
@@ -427,6 +427,7 @@ function History() {
                   <option value="อนุมัติแล้ว">อนุมัติแล้ว</option>
                   <option value="ผู้ยืมได้รับของแล้ว">ผู้ยืมได้รับของแล้ว</option>
                   <option value="คืนไม่ครบ">คืนไม่ครบ</option>
+                  <option value="เลยกำหนดคืน">เลยกำหนดคืน</option>
                 </Form.Select>
               </Col>
             </Row>
@@ -542,6 +543,18 @@ function History() {
                               disabled={r.status_name === "คืนของแล้ว"}
                             >
                               {r.status_name === "คืนของแล้ว" ? "คืนทั้งหมดแล้ว" : "ตรวจรับของคืน"}
+                            </Button>
+                          )}
+                          {(r.status_name === "เลยกำหนดคืน") && (
+                            <Button
+                              variant={r.status_name === "คืนไม่ครบ" ? "warning" : "warning"}
+                              className="w-100 my-1"
+                              onClick={() => {
+                                setCurrentReturn(r);
+                                setShowReturnModal(true);
+                              }}
+                            >
+                              {r.status_name === "เลยกำหนดคืน" ? "ตรวจรับของคืน" : "ตรวจรับของคืน"}
                             </Button>
                           )}
 

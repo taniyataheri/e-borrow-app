@@ -62,7 +62,15 @@ function CancelHistory() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
+  console.log("paginatedList", paginatedList);
+  const formatDDate = (dateStr) => {
+    const date = new Date(dateStr);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear() + 543;
+  
+    return `${day}/${month}/${year}`;
+  };
   return (
     <div className="d-flex flex-column flex-lg-row">
       <Navbar />
@@ -112,13 +120,13 @@ function CancelHistory() {
                         : `${item.frist_name || ""} ${item.last_name || ""}`.trim() || "-"}
                   </td>
                   <td>{item.team}</td>
-                  <td>{item.product_name}</td>
+                  <td>{item.name}</td>
                   <td>{item.quantity}</td>
-                  <td>{formatDate(item.request_date)}</td>
+                  <td>{formatDDate(item.request_date)}</td>
                   <td>{item.purpose || "-"}</td>
                   <td>{item.cancel_reason || "-"}</td>
                   <td>{item.canceled_by || "-"}</td>
-                  <td>{formatDate(item.updated_date)}</td>
+                  <td>{formatDDate(item.cancel_timestamp)}</td>
                 </tr>
               ))}
             </tbody>

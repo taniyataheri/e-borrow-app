@@ -12,38 +12,38 @@ const paginate = (items, currentPage, itemsPerPage) => {
   return items.slice(startIndex, endIndex);
 };
 
-// const renderSizeOptions = (category_id) => {
-//   if (!category_id) {
-//     return <option value="">กรุณาเลือกประเภทก่อน</option>;
-//   }
+const renderSizeOptions = (category_id) => {
+  if (!category_id) {
+    return <option value="">กรุณาเลือกประเภทก่อน</option>;
+  }
 
-//   if (["1", "2", "3"].includes(category_id)) {
-//     return (
-//       <>
-//         <option value="">เลือกขนาด</option>
-//         <option value="S">S</option>
-//         <option value="M">M</option>
-//         <option value="L">L</option>
-//         <option value="XL">XL</option>
-//         <option value="Free Size">Free Size</option>
-//       </>
-//     );
-//   } else if (category_id === "4") {
-//     return (
-//       <>
-//         <option value="">เลือกความยาว</option>
-//         <option value="สั้น">สั้น</option>
-//         <option value="ยาว">ยาว</option>
-//       </>
-//     );
-//   } else {
-//     return (
-//       <>
-//         <option value="ไม่ระบุ">ไม่ระบุ</option>
-//       </>
-//     );
-//   }
-// };
+  if (["1", "2", "3"].includes(category_id)) {
+    return (
+      <>
+        <option value="">เลือกขนาด</option>
+        <option value="S">S</option>
+        <option value="M">M</option>
+        <option value="L">L</option>
+        <option value="XL">XL</option>
+        <option value="Free Size">Free Size</option>
+      </>
+    );
+  } else if (category_id === "4") {
+    return (
+      <>
+        <option value="">เลือกความยาว</option>
+        <option value="สั้น">สั้น</option>
+        <option value="ยาว">ยาว</option>
+      </>
+    );
+  } else {
+    return (
+      <>
+        <option value="ไม่ระบุ">ไม่ระบุ</option>
+      </>
+    );
+  }
+};
 
 function Home() {
   const [products, setProducts] = useState([]);
@@ -269,7 +269,7 @@ function Home() {
         });
       });
   };
-
+  
   useEffect(() => {
     try {
       fetchProducts();
@@ -326,9 +326,6 @@ function Home() {
     axios.get("http://localhost:3001/categories").then((response) => {
       setCategories(response.data);
     });
-    axios.get("http://localhost:3001/product_sizes").then((response) => {
-      setProductSize(response.data);
-    });
   };
 
   const deleteProduct = (id) => {
@@ -338,21 +335,10 @@ function Home() {
   };
 
   const updateProduct = (id) => {
-    axios
-      .put(`http://localhost:3001/products/${id}`, {
-        name,
-        color,
-        qta,
-        size,
-        price,
-        category_id,
-        status,
-        image,
-      })
-      .then(() => {
-        fetchProducts();
-        setShow(false);
-      });
+    axios.put(`http://localhost:3001/products/${id}`, { name, color, qta, size, price, category_id, status, image }).then(() => {
+      fetchProducts();
+      setShow(false);
+    });
   };
 
   const borrowProduct = () => {

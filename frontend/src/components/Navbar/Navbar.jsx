@@ -2,6 +2,7 @@ import { useContext, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Transition } from "@headlessui/react";
+import Swal from "sweetalert2";
 import logo from "../../assets/logo.png"; //
 import "./Navbar.css";
 
@@ -27,6 +28,22 @@ const Navbar = () => {
       navigate("/");
     }
   }, [auth]);
+
+  const handleLogout = () => {
+    Swal.fire({
+      title: "คุณแน่ใจหรือไม่?",
+      text: "คุณต้องการออกจากระบบหรือไม่",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "ใช่, ออกจากระบบ",
+      cancelButtonText: "ยกเลิก",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        logout();
+        navigate("/");
+      }
+    });
+  };
   return (
     <nav className="navbar">
       <div className="navbar-container w-100 px-3">
@@ -68,7 +85,7 @@ const Navbar = () => {
                 </Link>
               </li>
               <li className="nav-item">
-                <Link className="nav-link" to="/" onClick={logout}>
+                <Link className="nav-link" to="#" onClick={(e) => { e.preventDefault(); handleLogout(); }}>
                   ออกจากระบบ
                 </Link>
               </li>
@@ -101,7 +118,7 @@ const Navbar = () => {
                 </Link>
               </li>
               <li className="nav-item">
-                <Link className="nav-link" to="/" onClick={logout}>
+                <Link className="nav-link" to="#" onClick={(e) => { e.preventDefault(); handleLogout(); }}>
                   ออกจากระบบ
                 </Link>
               </li>
@@ -141,7 +158,7 @@ const Navbar = () => {
                 </Link>
               </li>
               <li className="nav-item">
-                <Link className="nav-link" to="/" onClick={logout}>
+                <Link className="nav-link" to="#" onClick={(e) => { e.preventDefault(); handleLogout(); }}>
                   ออกจากระบบ
                 </Link>
               </li>
@@ -174,7 +191,7 @@ const Navbar = () => {
                 </Link>
               </li>
               <li className="nav-item">
-                <Link className="nav-link" to="/" onClick={logout}>
+                <Link className="nav-link" to="#" onClick={(e) => { e.preventDefault(); handleLogout(); }}>
                   ออกจากระบบ
                 </Link>
               </li>

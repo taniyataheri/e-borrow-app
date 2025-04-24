@@ -46,7 +46,7 @@ function ReturnHistory() {
       dateStyle: "short",
       timeStyle: "short",
     });
-console.log("🔍 searchTerm:", returnList);
+// console.log("🔍 searchTerm:", returnList);
   const filteredData = Array.isArray(returnList)
   
     ? returnList.filter((r) => {
@@ -78,7 +78,7 @@ console.log("🔍 searchTerm:", returnList);
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-  console.log("📜 paginatedList:", paginatedList);
+  // console.log("📜 paginatedList:", paginatedList);
 
 
   const calculateFine = (dueDate, quantity) => {
