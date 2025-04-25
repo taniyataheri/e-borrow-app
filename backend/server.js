@@ -1574,3 +1574,20 @@ app.get("/listmembers/:id", (req, res) => {
     res.json(result);
   });
 });
+
+app.put("/users/approve/:id", (req, res) => {
+  const { id } = req.params;
+  const { team, role_id } = req.body;
+
+  db.query(
+    "UPDATE members SET team = ?, role_id = ? WHERE member_id = ?",
+    [team, role_id, id],
+    (err, result) => {
+      if (err) {
+        console.error("DB Error:", err);
+        return res.status(500).send(err);
+      }
+      res.json({ message: "อัปเดตผู้ใช้สำเร็จ" });
+    }
+  );
+});
