@@ -8,9 +8,9 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 import { Nav } from 'react-bootstrap';
 
 createRoot(document.getElementById('root')).render(
-  <AuthProvider>
   <StrictMode>
+  <AuthProvider>
     <App />
-  </StrictMode>
-  </AuthProvider>,
+  </AuthProvider>
+  </StrictMode>,
 )

@@ -10,7 +10,7 @@ import { AuthContext } from "../../context/authContext";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const lๆinks = ["Home", "About", "Services", "Contact"];
+  const links = ["Home", "About", "Services", "Contact"];
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -44,6 +44,22 @@ const Navbar = () => {
       }
     });
   };
+
+  useEffect(() => {
+    if (user && user.role === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "ไม่มีสิทธิ์เข้าถึง",
+        text: "กรุณาเข้าสู่ระบบใหม่",
+        confirmButtonText: "ตกลง",
+        confirmButtonColor: "#d33",
+      }).then(() => {
+        logout();
+        navigate("/");
+      });
+    }
+  }, [user]);
+
   return (
     <nav className="navbar">
       <div className="navbar-container w-100 px-3">
@@ -62,7 +78,7 @@ const Navbar = () => {
           </div>
         </Link>
         <div className="nav-links desktop">
-          {role === 2 ? (
+          {role === 2 || role === 0 ? (
             <ul className="nav flex-row w-100">
               <li className="nav-item">
                 <Link className={`nav-link ${getLinkClass("/Home")}`} to="/Home">
@@ -113,8 +129,8 @@ const Navbar = () => {
                 </Link>
               </li>
               <li className="nav-item">
-                <Link className={`nav-link ${getLinkClass("/Signup")}`} to="/Signup">
-                  สร้างบัญชีผู้ใช้งาน
+                <Link className={`nav-link ${getLinkClass("/Approve")}`} to="/Approve">
+                  อนุมัติคำขอ
                 </Link>
               </li>
               <li className="nav-item">
@@ -135,7 +151,7 @@ const Navbar = () => {
 
       <Transition show={isOpen} enter="transition-enter" enterFrom="transition-enter-from" enterTo="transition-enter-to" leave="transition-leave" leaveFrom="transition-leave-from" leaveTo="transition-leave-to">
         <div className="mobile-menu mobile">
-        {role === 2 ? (
+        {role === 2 || role === 0 ? (
             <ul className="nav flex-column w-100">
               <li className="nav-item">
                 <Link className={`nav-link ${getLinkClass("/Home")}`} to="/Home">
@@ -186,8 +202,8 @@ const Navbar = () => {
                 </Link>
               </li>
               <li className="nav-item">
-                <Link className={`nav-link ${getLinkClass("/Signup")}`} to="/Signup">
-                  สร้างบัญชีผู้ใช้งาน
+                <Link className={`nav-link ${getLinkClass("/Approve")}`} to="/Approve">
+                  อนุมัติคำขอ
                 </Link>
               </li>
               <li className="nav-item">

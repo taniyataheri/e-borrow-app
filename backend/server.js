@@ -231,14 +231,13 @@ app.post("/users", async (req, res) => {
       last_name,
       prefix_name,
       email,
-      team,
       phone,
       birthDate,
       username,
       password,
       role_id,
     } = req.body;
-
+    const fullName = `${first_name} ${last_name}`;
     db.query(
       "SELECT * FROM members WHERE email = ? OR username = ?",
       [email, username],
@@ -257,14 +256,13 @@ app.post("/users", async (req, res) => {
       }
 
       db.query(
-        "INSERT INTO members (member_id, first_name, last_name, prefix, email, team, phone_number, birthday, username, password, role_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO members (first_name, last_name, full_name , prefix, email, team, phone_number, birthday, username, password, role_id) VALUES (?,?,?,?,?,?,?,?,?,?)",
         [
-          newId,
           first_name,
           last_name,
+          fullName,
           prefix_name,
           email,
-          team,
           phone,
           birthDate,
           username,
@@ -1562,4 +1560,17 @@ app.put("/maintenance/update-repair/:id", (req, res) => {
 
 app.listen(3001, () => {
   console.log("Server is running on port 3001");
+});
+
+// ดึงข้อมูล members ทั้งหมด role = 0
+app.get("/listmembers/:id", (req, res) => {
+  const id = req.params.id;
+  const sql = `SELECT * FROM members WHERE role_id = ?`;
+  db.query(sql, [id], (err, result) => {
+    if (err) {
+      console.error("เกิดข้อผิดพลาด:", err);
+      return res.status(500).send("ไม่สามารถดึงข้อมูลได้");
+    }
+    res.json(result);
+  });
 });

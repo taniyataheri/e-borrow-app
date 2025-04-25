@@ -80,6 +80,9 @@ function Home() {
     description: "",
   });
 
+  const auth = useContext(AuthContext);
+  const {user,token } = auth;
+
   const handleChangeBorrow = (e) => {
     if (e.target.name === "quantity") {
       if (e.target.value > selectedProduct.quantity) {
@@ -91,6 +94,7 @@ function Home() {
       if (!isNaN(selectedDate)) {
         // เพิ่ม 7 วัน
         const newEndDate = new Date(selectedDate);
+        
         newEndDate.setDate(newEndDate.getDate() + 7);
         setFormBorrow((prev) => ({
           ...prev,
@@ -154,10 +158,6 @@ function Home() {
   };
 
   const navigate = useNavigate();
-
-  const auth = useContext(AuthContext);
-
-  const { user } = auth;
 
   const [role, setRole] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
@@ -283,7 +283,11 @@ function Home() {
   const hasNotified = useRef(false);
 
   const fetchBorrow = () => {
-    axios.get("http://localhost:3001/borrow").then((response) => {
+    axios.get("http://localhost:3001/borrow", {
+      headers: {
+        Authorization: token, // <--- ส่ง token ที่คุณได้จาก context
+      },
+    }).then((response) => {
       const pendingBorrows = response.data.filter((item) => item.status_name === "รอการอนุมัติ");
 
       // ดึงค่าจาก sessionStorage

@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Container, Card, Form, Button } from "react-bootstrap";
 import axios from "axios";
-import Navbar from "../Navbar/Navbar";
+// import Navbar from "../Navbar/Navbar";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/authContext";
 import Swal from "sweetalert2";
+import logo from "../../assets/logo.png"; //
 
 const Signup = () => {
   const [formData, setFormData] = useState({
-    frist_name: "",
+    first_name: "",
     last_name: "",
     prefix_name: "",
     email: "",
@@ -17,7 +18,7 @@ const Signup = () => {
     birthDate: "",
     username: "",
     password: "",
-    role_id: 2,
+    role_id: 0,
   });
 
   const auth = useContext(AuthContext);
@@ -28,13 +29,13 @@ const Signup = () => {
   }, [auth]);
 
   const validateForm = () => {
-    const { frist_name, last_name, email, phone, username, password } = formData;
+    const { first_name, last_name, email, phone, username, password } = formData;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^\d{10}$/;
     const usernameRegex = /^[a-zA-Z0-9_]+$/;
 
-    if (!frist_name || !last_name || !email || !phone || !username || !password) {
+    if (!first_name || !last_name || !email || !phone || !username || !password) {
       Swal.fire("กรอกข้อมูลไม่ครบ", "กรุณากรอกทุกช่องให้ครบถ้วน", "warning");
       return false;
     }
@@ -75,38 +76,49 @@ const Signup = () => {
           });
           return;
         }
-
-        axios
-          .post("http://localhost:3001/users", formData)
-          .then(() => {
-            Swal.fire({
-              icon: "success",
-              title: "สร้างบัญชีผู้ใช้งานสำเร็จ",
-              text: "บัญชีผู้ใช้ถูกสร้างเรียบร้อยแล้ว",
-              confirmButtonColor: "#3085d6",
-              confirmButtonText: "ตกลง",
+        Swal.fire({
+          title: "ยืนยันการสมัคร?",
+          text: "คุณแน่ใจหรือไม่ว่าต้องการยืนยันการสมัคร",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonText: "ยืนยัน",
+          cancelButtonText: "ยกเลิก",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            // ✅ ถ้าผู้ใช้กดยืนยัน ค่อยส่ง axios
+            axios
+            .post("http://localhost:3001/users", formData)
+            .then(() => {
+              Swal.fire({
+                icon: "success",
+                title: "สร้างบัญชีผู้ใช้งานสำเร็จ",
+                text: "บัญชีผู้ใช้ถูกสร้างเรียบร้อยแล้ว",
+                confirmButtonColor: "#3085d6",
+                confirmButtonText: "ตกลง",
+              });
+              setFormData({
+                first_name: "",
+                last_name: "",
+                prefix_name: "",
+                email: "",
+                team: "",
+                phone: "",
+                birthDate: "",
+                username: "",
+                password: "",
+                role_id: 0,
+              });
+            })
+            .catch((err) => {
+              console.error(err);
+              Swal.fire({
+                icon: "error",
+                title: "เกิดข้อผิดพลาด",
+                text: "ไม่สามารถลงทะเบียนได้ กรุณาตรวจสอบข้อมูลอีกครั้ง",
+              });
             });
-            setFormData({
-              frist_name: "",
-              last_name: "",
-              prefix_name: "",
-              email: "",
-              team: "",
-              phone: "",
-              birthDate: "",
-              username: "",
-              password: "",
-              role_id: 2,
-            });
-          })
-          .catch((err) => {
-            console.error(err);
-            Swal.fire({
-              icon: "error",
-              title: "เกิดข้อผิดพลาด",
-              text: "ไม่สามารถลงทะเบียนได้ กรุณาตรวจสอบข้อมูลอีกครั้ง",
-            });
-          });
+          }
+        });
       })
       .catch((err) => {
         console.error(err);
@@ -142,40 +154,59 @@ const Signup = () => {
 
   return (
     <div className="d-flex flex-column flex-lg-row">
-      <Navbar />
-      <Container className="py-4" style={{ backgroundColor: "#F5F5F5", minHeight: "100vh", marginTop: "80px" }}>
+      {/* <Navbar /> */}
+      <Container className="py-4" style={{minHeight: "100vh", marginTop: "50px" }}>
         <Card className="p-4 mx-auto mt-3" style={{maxWidth: "800px", borderRadius: "10px", boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)" }}>
+          <div className="row d-flex-column align-items-center justify-content-center">
+            <img src={logo} alt="TLC Logo" style={{ width: "200px", objectFit: "contain", }}/>
+          </div>
           <h3 className="col-12 text-center mb-3" style={{ color: "#2e7d32" }}>
             สร้างบัญชีผู้ใช้งาน
           </h3>
           <Form onSubmit={handleSubmit}>
             <div className="row">
-              <Form.Group className="col-12 col-lg-6 mb-3">
+              <Form.Group className="col-12 col-lg-2 mb-3">
                 <Form.Label>คำนำหน้า</Form.Label>
                 <Form.Control as="select" name="prefix_name" value={formData.prefix_name} onChange={handleChange}>
-                  <option value=""></option>
+                  <option value="" disabled>กรุณาเลือก</option>
                   <option value="นาย">นาย</option>
                   <option value="นางสาว">นางสาว</option>
                   <option value="นาง">นาง</option>
                 </Form.Control>
               </Form.Group>
-              <Form.Group className="col-12 col-lg-6 mb-3">
+              <Form.Group className="col-12 col-lg-5 mb-3">
                 <Form.Label>ชื่อ</Form.Label>
-                <Form.Control type="text" name="frist_name" value={formData.frist_name} onChange={handleChange} />
+                <Form.Control type="text" name="first_name" value={formData.first_name} onChange={handleChange} />
               </Form.Group>
-            </div>
-            <div className="row">
-              <Form.Group className="col-12 col-lg-6 mb-3">
+              <Form.Group className="col-12 col-lg-5 mb-3">
                 <Form.Label>นามสกุล</Form.Label>
                 <Form.Control type="text" name="last_name" value={formData.last_name} onChange={handleChange} />
               </Form.Group>
+            </div>
+
+            <div className="row">
+              <Form.Group className="col-12 col-lg-6 mb-3">
+                <Form.Label>ชื่อผู้ใช้(username)</Form.Label>
+                <Form.Control type="text" name="username" value={formData.username} onChange={handleChange} />
+              </Form.Group>
+              <Form.Group className="col-12 col-lg-6 mb-3">
+                <Form.Label>รหัสผ่าน</Form.Label>
+                <Form.Control type="password" name="password" value={formData.password} onChange={handleChange} placeholder="กรอกรหัสผ่านอย่างน้อย 6 ตัวอักษร" />
+              </Form.Group>
+            </div>
+
+            <div className="row">
+              <Form.Group className="col-12 col-lg-6 mb-3">
+                <Form.Label>วันเกิด</Form.Label>
+                <Form.Control type="date" name="birthDate" min={minBirthDate} max={maxBirthDate} value={formData.birthDate} onChange={handleChange} />
+              </Form.Group>
+
               <Form.Group className="col-12 col-lg-6 mb-3">
                 <Form.Label>อีเมล</Form.Label>
                 <Form.Control type="email" name="email" value={formData.email} onChange={handleChange} />
               </Form.Group>
-            </div>
-            <div className="row">
-              <Form.Group className="col-12 col-lg-6 mb-3">
+
+              {/* <Form.Group className="col-12 col-lg-6 mb-3">
                 <Form.Label>ทีม</Form.Label>
                 <Form.Control as="select" name="team" value={formData.team} onChange={handleChange}>
                   <option value="">เลือกทีม</option>
@@ -189,30 +220,27 @@ const Signup = () => {
                   <option value="ทีม I">ทีม I</option>
                   <option value="ทีม J">ทีม J</option>
                 </Form.Control>
-              </Form.Group>
+              </Form.Group> */}
+            </div>
+            <div className="row">
               <Form.Group className="col-12 col-lg-6 mb-3">
                 <Form.Label>เบอร์โทรศัพท์</Form.Label>
                 <Form.Control type="tel" name="phone" value={formData.phone} onChange={handleChange} />
               </Form.Group>
+              <div className="col-12 col-lg-6 mb-2 d-flex align-items-end justify-content-center">
+              <p className="text-start" style={{ color: "#2e7d32" }}>
+                    มีบัญชีอยู่แล้ว?{" "}
+                    <span style={{ fontWeight: "bold" }}>
+                      <a href="/" style={{ textDecoration: "none", color: "#2e7d32" }}>
+                        เข้าสู่ระบบ
+                      </a>
+                    </span>
+                  </p>
+              </div>
             </div>
-            <div className="row">
-              <Form.Group className="col-12 col-lg-6 mb-3">
-                <Form.Label>วันเกิด</Form.Label>
-                <Form.Control type="date" name="birthDate" min={minBirthDate} max={maxBirthDate} value={formData.birthDate} onChange={handleChange} />
-              </Form.Group>
-              <Form.Group className="col-12 col-lg-6 mb-3">
-                <Form.Label>ชื่อผู้ใช้(username)</Form.Label>
-                <Form.Control type="text" name="username" value={formData.username} onChange={handleChange} />
-              </Form.Group>
-            </div>
-            <div className="row">
-              <Form.Group className="col-12 mb-3">
-                <Form.Label>รหัสผ่าน</Form.Label>
-                <Form.Control type="password" name="password" value={formData.password} onChange={handleChange} placeholder="กรอกรหัสผ่านอย่างน้อย 6 ตัวอักษร" />
-              </Form.Group>
-            </div>
+            
             <div className="row d-flex justify-content-center">
-              <Button variant="success" type="submit" className="w-100" style={{ maxWidth: "500px" }}>
+              <Button variant="success" type="submit" className="w-100" style={{ maxWidth: "400px" }}>
                 ลงทะเบียน
               </Button>
             </div>

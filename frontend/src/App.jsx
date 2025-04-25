@@ -8,6 +8,7 @@ import Maintenance from './components/Maintenance/Maintenance';
 import TestFont from "./components/TestFont";
 import ReturnHistory from "./components/ReturnHistory";
 import CancelledRequests from "./components/CancelledRequests";
+import Approve from './components/Approve/ApproveUser';
 
 
 
@@ -24,6 +25,7 @@ function App() {
           <Route path='/Signup' element={<Signup/>}></Route>
           <Route path="/return-history" element={<ReturnHistory />} />
           <Route path="/cancelled-requests" element={<CancelledRequests/>}></Route>
+          <Route path="/Approve" element={<Approve/>}></Route>
         </Routes>
       </Router>
   )
