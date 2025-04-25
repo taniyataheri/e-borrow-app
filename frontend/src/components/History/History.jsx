@@ -441,10 +441,11 @@ function History() {
                   <th>จำนวนที่ยืม</th>
                   <th>วันที่ยืม</th>
                   <th>กำหนดคืน</th>
-                  <th>วันที่คืน</th>
+                  <th>วันที่รับของ</th>
+                  {/* <th>วันที่คืน</th> */}
                   <th>ค้างคืน</th>
-                  <th>คืนแล้ว</th>
-                  <th>ค่าปรับ</th>
+                  {/* <th>คืนแล้ว</th> */}
+                  {/* <th>ค่าปรับ</th> */}
                   <th>สถานะ</th>
                   {role === 1 && <th>จัดการ</th>}
                 </tr>
@@ -466,11 +467,12 @@ function History() {
                       <td>{r.quantity}</td>
                       <td><DateComponent dateString={r.request_date} /></td>
                       <td><DateComponent dateString={r.due_return_date} /></td>
-                      <td>{r.return_date ? <DateComponent dateString={r.return_date} /> : "-"}</td>
+                      <td><DateComponent dateString={r.receive_date} /></td>
+                      {/* <td>{r.return_date ? <DateComponent dateString={r.return_date} /> : "-"}</td> */}
                       {role === 1 && <td>{r.total || 0}</td>}
                       {role === 2 && <td style={{ color: r.status_name === "คืนไม่ครบ" ? "red" : "black" }}>{r.total || 0}</td>}
-                      <td style={{ color: r.status_name === "คืนไม่ครบ" ? "green" : "black" }}>{["รับของแล้ว", "คืนไม่ครบ"].includes(r.status_name) ? (r.quantity || 0) - (r.total || 0) : r.status_name === "ส่งคืนแล้ว" ? 0 : "-"}</td>
-                      <td>{r.return_date ? (getFine(r.request_date, r.return_date) * r.price_per_item).toFixed(2) : 0}</td>
+                      {/* <td style={{ color: r.status_name === "คืนไม่ครบ" ? "green" : "black" }}>{["รับของแล้ว", "คืนไม่ครบ"].includes(r.status_name) ? (r.quantity || 0) - (r.total || 0) : r.status_name === "ส่งคืนแล้ว" ? 0 : "-"}</td> */}
+                      {/* <td>{r.return_date ? (getFine(r.request_date, r.return_date) * r.price_per_item).toFixed(2) : 0}</td> */}
                       <td style={{fontWeight: "500",color: r.status_name === "ถูกยกเลิก" ? "red" : r.status_name === "คืนไม่ครบ" ? "red" : r.status_name === "รอการอนุมัติ" ? "orange" : r.status_name === "อนุมัติแล้ว" ? "green" : "black"}}>{r.status_name}</td>
                       {role === 1 && (
                         <td>
@@ -503,7 +505,7 @@ function History() {
 
                           {r.status_name?.trim() === "อนุมัติแล้ว" && (
                             <Button variant="warning" className="w-100 my-1" onClick={() => updateStatus(r.request_id, "ผู้ยืมได้รับของแล้ว", r.product_id)}>
-                              ยืนยันการรับของ
+                              ยืนยันการรับของ 
                             </Button>
                           )}
 

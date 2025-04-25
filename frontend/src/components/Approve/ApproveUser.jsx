@@ -17,7 +17,7 @@ function CancelHistory() {
     if (!user || !token) return; // ✅ รอให้ user/token พร้อมก่อน
 
     axios
-      .get("http://localhost:3001/listmembers/0", {
+      .get("http://localhost:3001/listmembers", {
         headers: {
           Authorization: token, // ✅ ส่ง token ไปกับ header
         },

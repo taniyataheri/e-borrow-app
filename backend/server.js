@@ -201,7 +201,7 @@ app.get("/product_sizes", (req, res) => {
 // ฟังก์ชันสร้าง ID ใหม่
 const generateNewId = (team, callback) => {
   db.query(
-    "SELECT CAST(REGEXP_REPLACE(member_id, '[^0-9]', '') AS UNSIGNED) AS numeric_part FROM members WHERE member_id LIKE ? AND role_id = 2 ORDER BY numeric_part DESC LIMIT 1",
+    "SELECT CAST(REGEXP_REPLACE(member_id, '[^0-9]', '') AS UNSIGNED) AS numeric_part FROM members WHERE member_id LIKE ?  ORDER BY numeric_part DESC LIMIT 1",
     [`${team}%`],
     (err, results) => {
       if (err) {
@@ -250,20 +250,21 @@ app.post("/users", async (req, res) => {
       }
     );
 
-    generateNewId(team, (err, newId) => {
+    generateNewId("M00", (err, newId) => {
       if (err) {
         return res.status(500).send(err);
       }
 
       db.query(
-        "INSERT INTO members (first_name, last_name, full_name , prefix, email, team, phone_number, birthday, username, password, role_id) VALUES (?,?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO members (member_id, first_name, last_name, full_name , prefix, email, phone_number, birthday, username, password, role_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
         [
+          newId,
           first_name,
           last_name,
           fullName,
           prefix_name,
           email,
-          phone,
+          phon,
           birthDate,
           username,
           password,
@@ -279,7 +280,7 @@ app.post("/users", async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: "เกิดข้อผิดพลาดในระบบ" });
+    return res.status(500).json({ message: err.message });
   }
 });
 
@@ -310,6 +311,43 @@ app.post("/login", (req, res) => {
     } else {
       res.status(401).json({ message: "Invalid email or password" });
     }
+  });
+});
+
+app.post("/forgot-password", (req, res) => {
+  const { email, newPassword, confirmPassword } = req.body;
+
+  if (!email || !newPassword || !confirmPassword) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
+
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({ message: 'Passwords do not match' });
+  }
+
+  // ตรวจสอบว่าอีเมลมีอยู่ในระบบหรือไม่
+  const query = 'SELECT * FROM members WHERE email = ?';
+  db.query(query, [email], (err, results) => {
+    if (err) return res.status(500).json({ message: 'Database error', error: err });
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: 'Email not found' });
+    }
+
+    // อัปเดตรหัสผ่านใหม่
+    const updateQuery = 'UPDATE members SET password = ? WHERE email = ?';
+    db.query(updateQuery, [confirmPassword, email], (err, updateResult) => {
+      if (err) return res.status(500).json({ message: 'Password update failed', error: err });
+
+      return res.status(200).json({ message: 'Password has been updated successfully' });
+    });
+  });
+});
+
+app.get("/users-list", (req, res) => {
+db.query("SELECT mb.*,roles.role_name FROM members mb LEFT JOIN roles ON mb.role_id = roles.role_id", (err, results) => {
+    if (err) return res.status(500).send(err);
+    res.json(results);
   });
 });
 
@@ -402,7 +440,7 @@ LEFT JOIN return_detail rd ON b.request_id = rd.request_id;
   `;
 
   db.query(sql, (err, results) => {
-    console.log("Raw results:", results);
+    // console.log("Raw results:", results);
 
     if (err) {
       console.error("Error fetching borrow requests:", err);
@@ -417,7 +455,7 @@ LEFT JOIN return_detail rd ON b.request_id = rd.request_id;
     }
 
     const localDate = getDateOnlyUTC(new Date());
-    console.log("📆 Current date (UTC-only):", localDate.toISOString());
+    // console.log("📆 Current date (UTC-only):", localDate.toISOString());
 
     const notReturnedRequests = results.filter((r) => {
       const dueDate = getDateOnlyUTC(r.due_return_date);
@@ -441,12 +479,12 @@ LEFT JOIN return_detail rd ON b.request_id = rd.request_id;
       return dueDate < localDate && (r.total_return || 0) === r.quantity;
     });
 
-    console.log("notReturnedRequests:", notReturnedRequests);
-    console.log(
-      "partiallyReturnedOverdueRequests:",
-      partiallyReturnedOverdueRequests
-    );
-    console.log("overReturnedRequests:", overReturnedRequests);
+    // console.log("notReturnedRequests:", notReturnedRequests);
+    // console.log(
+    //   "partiallyReturnedOverdueRequests:",
+    //   partiallyReturnedOverdueRequests
+    // );
+    // console.log("overReturnedRequests:", overReturnedRequests);
     // return res.json(results);
     if (notReturnedRequests.length > 0) {
       // อัพเดทสถานะเป็น 'เกินกำหนด' สำหรับรายการที่เกินกำหนด
@@ -817,10 +855,10 @@ app.post("/borrow", (req, res) => {
 app.put("/borrow/:id", (req, res) => {
   const { id } = req.params;
   const { status_name, qta, product_id } = req.body;
-
+console.log(status_name, qta, product_id);
   if (status_name === "ส่งคืนแล้ว") {
     db.query(
-      "UPDATE borrow_request SET return_date = NOW() WHERE request_id = ?",
+      "UPDATE borrow_request SET return_date = NOW()  WHERE request_id = ?",
       [id],
       (err, results) => {
         if (err) {
@@ -855,6 +893,32 @@ app.put("/borrow/:id", (req, res) => {
           );
           res.json({ message: "อับเดตสำเร็จ!!!" });
         }
+      }
+    );
+  } else if (status_name === "ผู้ยืมได้รับของแล้ว") {
+    // อัปเดต receive_date ก่อน
+    console.log("ผู้ยืมได้รับของแล้ว--->", status_name, qta, product_id);
+    db.query(
+      "UPDATE borrow_request SET receive_date = NOW() WHERE request_id = ?",
+      [product_id],
+      (err1, results1) => {
+        if (err1) {
+          return res.status(500).send(err1);
+        }
+  
+        // อัปเดตสถานะหลังจากสำเร็จแล้ว
+        db.query(
+          "UPDATE borrow_request_status SET status_name = ? WHERE request_id = ?",
+          [status_name, product_id],
+          (err2, results2) => {
+            if (err2) {
+              return res.status(500).send(err2);
+            }
+  
+            // ตอบกลับเมื่อทั้งสอง query สำเร็จ
+            res.json({ message: "อัปเดตสำเร็จ!!!" });
+          }
+        );
       }
     );
   } else {
@@ -1084,7 +1148,7 @@ app.get("/return-detail/user/:id", (req, res) => {
   //   `;
   db.query(sql, [userId], (err, result) => {
     if (err) return res.status(500).json({ error: err });
-    console.log("result", result);
+    // console.log("result", result);
     res.json(result);
   });
 });
@@ -1142,7 +1206,7 @@ app.get("/return-detail", (req, res) => {
 
   db.query(sql, (err, result) => {
     if (err) return res.status(500).json({ error: err });
-    console.log("result", result);
+    // console.log("result", result);
     res.json(result);
   });
 });
@@ -1371,7 +1435,7 @@ app.post("/return-detail", verifyToken, (req, res) => {
                 WHERE request_id = ?
               `;
                 db.query(updatesql, [request_id], (err4, result4) => {
-                  console.log(result4);
+                  // console.log(result4);
                   if (err4) {
                     return res
                       .status(500)
@@ -1397,7 +1461,7 @@ app.post("/return-detail", verifyToken, (req, res) => {
                 WHERE request_id = ?
               `;
                 db.query(updatesql, [request_id], (err4, result4) => {
-                  console.log(result4);
+                  // console.log(result4);
                   if (err4) {
                     return res
                       .status(500)
@@ -1563,10 +1627,9 @@ app.listen(3001, () => {
 });
 
 // ดึงข้อมูล members ทั้งหมด role = 0
-app.get("/listmembers/:id", (req, res) => {
-  const id = req.params.id;
-  const sql = `SELECT * FROM members WHERE role_id = ?`;
-  db.query(sql, [id], (err, result) => {
+app.get("/listmembers", (req, res) => {
+  const sql = `SELECT mb.*,roles.role_name FROM members mb LEFT JOIN roles ON mb.role_id = roles.role_id`;
+  db.query(sql, (err, result) => {
     if (err) {
       console.error("เกิดข้อผิดพลาด:", err);
       return res.status(500).send("ไม่สามารถดึงข้อมูลได้");
