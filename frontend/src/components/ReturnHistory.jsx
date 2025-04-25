@@ -52,13 +52,13 @@ function ReturnHistory() {
         const status = r.status_name || "-";
         const matchTab =
           activeTab === "all"
-            ? totalReturned === total
+            ? (totalReturned === total) || status === "คืนของแล้ว"
             : activeTab === "partial"
             ? r.returned_damaged > 0 || r.returned_lost > 0
             : activeTab === "unreturned"
             ? status === "คืนไม่ครบ"
             : activeTab === "overdue"
-            ? ( status === "เลยกำหนดคืนแต่คืนไม่ครบ" || status === "คืนครบแล้วแต่เลยกำหนดคืน")
+            ? ( status === "คืนไม่ครบและเลยกำหนด" || status === "เลยกำหนดคืน")
             : true;
 
         const searchMatch =
