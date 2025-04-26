@@ -58,7 +58,7 @@ function ReturnHistory() {
             : activeTab === "unreturned"
             ? status === "คืนไม่ครบ"
             : activeTab === "overdue"
-            ? ( status === "คืนไม่ครบและเลยกำหนด" || status === "เลยกำหนดคืน")
+            ? ( status === "คืนไม่ครบและเลยกำหนด" || status === "เลยกำหนดคืน" || status === "คืนครบแล้วแต่เลยกำหนดคืน")
             : true;
 
         const searchMatch =
@@ -70,6 +70,7 @@ function ReturnHistory() {
     : [];
   console.log("🔍 filteredData:", filteredData);
 
+  const pageSize = 10;
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedList = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
@@ -185,7 +186,7 @@ function ReturnHistory() {
                   ) : (
                     paginatedList.map((r, idx) => (
                       <tr key={`${r.return_id}-${idx}`}>
-                        <td>{r.request_id}</td>
+                        <td>{(currentPage - 1) * itemsPerPage + idx + 1}</td>
                         <td>{r.product_name}</td>
                         <td>{r.received_by_name}</td>
                         <td>{r.returned_good}</td>
@@ -213,7 +214,7 @@ function ReturnHistory() {
                   ) : (
                     paginatedList.map((r, idx) => (
                       <tr key={`${r.return_id}-${idx}`}>
-                        <td>{r.request_id}</td>
+                        <td>{(currentPage - 1) * itemsPerPage + idx + 1}</td>
                         <td>{r.product_name}</td>
                         <td>{r.received_by_name}</td>
                         <td>{r.returned_good}</td>
@@ -241,7 +242,7 @@ function ReturnHistory() {
                   ) : (
                     paginatedList.map((r, idx) => (
                       <tr key={`${r.return_id}-${idx}`}>
-                        <td>{r.request_id}</td>
+                        <td>{(currentPage - 1) * itemsPerPage + idx + 1}</td>
                         <td>{r.product_name}</td>
                         <td>{r.received_by_name}</td>
                         <td>{r.returned_good}</td>
@@ -269,7 +270,7 @@ function ReturnHistory() {
                   ) : (
                     paginatedList.map((r, idx) => (
                       <tr key={`${r.return_id}-${idx}`}>
-                        <td>{r.request_id}</td>
+                        <td>{(currentPage - 1) * itemsPerPage + idx + 1}</td>
                         <td>{r.product_name}</td>
                         <td>{r.received_by_name}</td>
                         <td>{r.returned_good}</td>

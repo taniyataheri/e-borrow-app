@@ -60,7 +60,7 @@ function Home() {
   const [qta, setQta] = useState(0);
   const [size, setSize] = useState(null);
   const [price, setPrice] = useState(0);
-  const [category_id, setCategoryId] = useState("");
+  const [category_id, setCategoryId] = useState(null);
   const [status, setStatus] = useState("");
   const [image, setImage] = useState("");
   const [previewImage, setPreviewImage] = useState(null);
@@ -125,11 +125,13 @@ function Home() {
   }, []);
 
   const renderSizeOptions = (category_id) => {
+    category_id = +category_id;
+    console.log(category_id);
     if (!category_id) {
       return <option value="">กรุณาเลือกประเภทก่อน</option>;
     }
 
-    if (["1", "2", "3"].includes(category_id)) {
+    if ([1, 2, 3].includes(category_id)) {
       return (
         <>
           <option value="">เลือกขนาด</option>
@@ -140,7 +142,7 @@ function Home() {
           ))}
         </>
       );
-    } else if (category_id === "4") {
+    } else if (category_id === 4) {
       return (
         <>
           <option value="">เลือกความยาว</option>
@@ -165,9 +167,9 @@ function Home() {
     name: "",
     color: "",
     qta: 0,
-    size: "",
+    size: null,
     price_per_item: 0,
-    category_id: "",
+    category_id: null,
     status: "พร้อมใช้งาน",
     image: "",
     imageFile: "",
@@ -178,9 +180,9 @@ function Home() {
       name: "",
       color: "",
       qta: 0,
-      size: "",
+      size: null,
       price_per_item: 0,
-      category_id: "",
+      category_id: null,
       status: "พร้อมใช้งาน",
       image: "",
       imageFile: "",
@@ -714,7 +716,7 @@ function Home() {
             const currentPage = currentPageByCategory[category.category_id] || 1;
             const startIndex = (currentPage - 1) * itemsPerPage;
             const paginatedProducts = filteredByCategory.slice(startIndex, startIndex + itemsPerPage);
-            console.log("paginatedProducts:", paginatedProducts);
+            // console.log("paginatedProducts:", paginatedProducts);
             return (
               <div key={category.category_id} className="mt-4 mx-4">
                 <div className="category-header">
@@ -911,6 +913,7 @@ function Home() {
                         <option value="7">ครุภัณฑ์</option>
                       </Form.Select>
                     </Form.Group>
+                    
                   </div>
 
                   <div className="row">
@@ -960,8 +963,6 @@ function Home() {
                       >
                         <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
                         <option value="ไม่พร้อมใช้งาน">ไม่พร้อมใช้งาน</option>
-                        <option value="รอซ่อมเเซม">รอซ่อมเเซม</option>
-                        <option value="รอซัก">รอซัก</option>
                       </Form.Select>
                     </Form.Group>
 

@@ -56,7 +56,6 @@ function CancelHistory() {
         item.product_name?.toLowerCase().includes(searchLower)
       );
     });
-
   const totalPages = Math.ceil(filteredList.length / itemsPerPage);
   const paginatedList = filteredList.slice(
     (currentPage - 1) * itemsPerPage,
@@ -64,7 +63,11 @@ function CancelHistory() {
   );
   console.log("paginatedList", paginatedList);
   const formatDDate = (dateStr) => {
+    if (!dateStr) return '-';
+  
     const date = new Date(dateStr);
+    if (isNaN(date)) return '-'; // ตรวจสอบว่าไม่ใช่วันที่
+  
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear() + 543;
@@ -113,7 +116,7 @@ function CancelHistory() {
             <tbody>
               {paginatedList.map((item, index) => (
                 <tr key={index}>
-                  <td>{item.request_id}</td>
+                  <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
                   <td>
                       {item.full_name && item.full_name.trim() !== ""
                         ? item.full_name

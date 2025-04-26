@@ -49,7 +49,7 @@ function Signin() {
               <Form.Control type="email" placeholder="อีเมล" onChange={(e) => setEmail(e.target.value)} />
             </Form.Group>
 
-            <Form.Group className="mb-4" controlId="formBasicPassword">
+            <Form.Group className="mb-3" controlId="formBasicPassword">
               <Form.Label style={{ fontWeight: "bold", color: "#2e7d32" }}>รหัสผ่าน</Form.Label>
               <div style={{ position: "relative", borderRadius: "8px" }}>
                 <Form.Control
@@ -86,8 +86,21 @@ function Signin() {
             </Form.Group>
             <div className="row">
               <div className="12">
-                <p className="text-start" style={{ color: "#2e7d32" }}>
-                  ยังไม่มีบัญชี?{" "}
+                <p className="text-end" style={{ color: "#2e7d32" }}>
+                    <a href="/ForgotPassword" style={{ textDecoration: "none", color: "#2e7d32" }}>
+                      ลืมรหัสผ่าน
+                    </a>
+                </p>
+              </div>
+            </div>
+            <Button variant="success" type="submit" className="mb-3 w-100">
+              เข้าสู่ระบบ
+            </Button>
+
+            <div className="row d-flex justify-content-center">
+              <div className="12">
+                <p className="text-center" style={{ color: "#2e7d32" }}>
+                  ยังไม่มีบัญชี?&nbsp;&nbsp;&nbsp;
                   <span style={{ fontWeight: "bold" }}>
                     <a href="/Signup" style={{ textDecoration: "none", color: "#2e7d32" }}>
                       สมัครสมาชิก
@@ -96,9 +109,6 @@ function Signin() {
                 </p>
               </div>
             </div>
-            <Button variant="success" type="submit" className="w-100">
-              เข้าสู่ระบบ
-            </Button>
           </Form>
         </Card.Body>
       </Card>

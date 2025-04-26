@@ -108,6 +108,7 @@ function CancelHistory() {
               confirmButtonColor: "#2e7d32",
             });
             navigate("/Approve");
+            window.location.reload();
             // โหลดใหม่ หรืออัปเดต state
           })
           .catch((err) => {
@@ -166,7 +167,7 @@ function CancelHistory() {
               ) : (
                 paginatedList.map((item, index) => (
                   <tr key={index}>
-                    <td>{index + 1}</td>
+                    <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
                     <td>
                       {item.prefix} {item.full_name}
                     </td>
@@ -180,6 +181,11 @@ function CancelHistory() {
                       {item.role_id === 0 && (
                         <Button variant="success" className="w-100 my-1" onClick={() => handleApprove(item)}>
                           อนุมัติ
+                        </Button>
+                      )}
+                      {item.role_id !== 0 && (
+                        <Button variant="warning" className="w-100 my-1" disabled onClick={() => handleApprove(item)}>
+                          อนุมัติสิทธิ์แล้ว
                         </Button>
                       )}
                     </td>

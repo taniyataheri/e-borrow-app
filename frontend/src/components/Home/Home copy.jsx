@@ -729,8 +729,6 @@ function Home() {
                     <Form.Select defaultValue={selectedProduct.status} onChange={(e) => setStatus(e.target.value)}>
                       <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
                       <option value="ไม่พร้อมใช้งาน">ไม่พร้อมใช้งาน</option>
-                      <option value="รอซ่อมเเซม">รอซ่อมเเซม</option>
-                      <option value="รอซัก">รอซัก</option>
                     </Form.Select>
                   </Form.Group>
                   <Form.Group className="mb-3">

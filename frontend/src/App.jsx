@@ -9,6 +9,7 @@ import TestFont from "./components/TestFont";
 import ReturnHistory from "./components/ReturnHistory";
 import CancelledRequests from "./components/CancelledRequests";
 import Approve from './components/Approve/ApproveUser';
+import ForgotPasswird from './components/Forgot/Forgotpassword';
 
 
 
@@ -26,6 +27,7 @@ function App() {
           <Route path="/return-history" element={<ReturnHistory />} />
           <Route path="/cancelled-requests" element={<CancelledRequests/>}></Route>
           <Route path="/Approve" element={<Approve/>}></Route>
+          <Route path="/ForgotPassword" element={<ForgotPasswird />} />
         </Routes>
       </Router>
   )

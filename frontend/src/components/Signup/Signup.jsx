@@ -29,13 +29,13 @@ const Signup = () => {
   }, [auth]);
 
   const validateForm = () => {
-    const { first_name, last_name, email, phone, username, password } = formData;
+    const { first_name, last_name, email, team , phone, username, password } = formData;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^\d{10}$/;
     const usernameRegex = /^[a-zA-Z0-9_]+$/;
 
-    if (!first_name || !last_name || !email || !phone || !username || !password) {
+    if (!first_name || !last_name || !team || !email || !phone || !username || !password) {
       Swal.fire("กรอกข้อมูลไม่ครบ", "กรุณากรอกทุกช่องให้ครบถ้วน", "warning");
       return false;
     }
@@ -108,6 +108,7 @@ const Signup = () => {
                 password: "",
                 role_id: 0,
               });
+                navigate("/");
             })
             .catch((err) => {
               console.error(err);
@@ -206,28 +207,37 @@ const Signup = () => {
                 <Form.Control type="email" name="email" value={formData.email} onChange={handleChange} />
               </Form.Group>
 
-              {/* <Form.Group className="col-12 col-lg-6 mb-3">
-                <Form.Label>ทีม</Form.Label>
-                <Form.Control as="select" name="team" value={formData.team} onChange={handleChange}>
-                  <option value="">เลือกทีม</option>
-                  <option value="ทีม A">ทีม A</option>
-                  <option value="ทีม B">ทีม B</option>
-                  <option value="ทีม C">ทีม C</option>
-                  <option value="ทีม E">ทีม E</option>
-                  <option value="ทีม F">ทีม F</option>
-                  <option value="ทีม G">ทีม G</option>
-                  <option value="ทีม H">ทีม H</option>
-                  <option value="ทีม I">ทีม I</option>
-                  <option value="ทีม J">ทีม J</option>
-                </Form.Control>
-              </Form.Group> */}
             </div>
             <div className="row">
               <Form.Group className="col-12 col-lg-6 mb-3">
                 <Form.Label>เบอร์โทรศัพท์</Form.Label>
                 <Form.Control type="tel" name="phone" value={formData.phone} onChange={handleChange} />
               </Form.Group>
-              <div className="col-12 col-lg-6 mb-2 d-flex align-items-end justify-content-center">
+
+              <Form.Group className="col-12 col-lg-6 mb-3">
+                <Form.Label>ทีม</Form.Label>
+                <Form.Control as="select" name="team" value={formData.team} onChange={handleChange}>
+                  <option value="">เลือกทีม</option>
+                  <option value="A">ทีม A</option>
+                  <option value="B">ทีม B</option>
+                  <option value="C">ทีม C</option>
+                  <option value="E">ทีม E</option>
+                  <option value="F">ทีม F</option>
+                  <option value="G">ทีม G</option>
+                  <option value="H">ทีม H</option>
+                  <option value="I">ทีม I</option>
+                  <option value="J">ทีม J</option>
+                </Form.Control>
+              </Form.Group>
+
+            </div>
+            
+            <div className="row d-flex justify-content-center">
+              <Button variant="success" type="submit" className="w-100" style={{ maxWidth: "400px" }}>
+                ลงทะเบียน
+              </Button>
+            </div>
+            <div className="col-12 mt-5 mb-2 d-flex align-items-end justify-content-center">
               <p className="text-start" style={{ color: "#2e7d32" }}>
                     มีบัญชีอยู่แล้ว?{" "}
                     <span style={{ fontWeight: "bold" }}>
@@ -237,14 +247,6 @@ const Signup = () => {
                     </span>
                   </p>
               </div>
-            </div>
-            
-            <div className="row d-flex justify-content-center">
-              <Button variant="success" type="submit" className="w-100" style={{ maxWidth: "400px" }}>
-                ลงทะเบียน
-              </Button>
-            </div>
-            
           </Form>
         </Card>
       </Container>
