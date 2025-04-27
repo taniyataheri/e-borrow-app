@@ -58,44 +58,44 @@ function CancelHistory() {
     Swal.fire({
       icon: "question",
       title: "คุณต้องการอนุญาต",
-      html: `
-        <div className="row d-flex align-items-center justify-content-center">
-          <div className="col-12 d-flex align-items-center justify-content-center">
-            <label for="teamSelect">เลือกทีม</label>
-            <select id="teamSelect" class="swal2-select" style="padding: 8px;border-radius: 5px;">
-              <option value="">-- เลือกทีม --</option>
-              <option value="A">ทีม A</option>
-              <option value="B">ทีม B</option>
-              <option value="C">ทีม C</option>
-              <option value="E">ทีม E</option>
-              <option value="F">ทีม F</option>
-              <option value="G">ทีม G</option>
-              <option value="H">ทีม H</option>
-              <option value="I">ทีม I</option>
-              <option value="J">ทีม J</option>
-            </select>
-          </div>
-        </div>
-      `,
+      // html: `
+      //   <div className="row d-flex align-items-center justify-content-center">
+      //     <div className="col-12 d-flex align-items-center justify-content-center">
+      //       <label for="teamSelect">เลือกทีม</label>
+      //       <select id="teamSelect" class="swal2-select" style="padding: 8px;border-radius: 5px;">
+      //         <option value="">-- เลือกทีม --</option>
+      //         <option value="A">ทีม A</option>
+      //         <option value="B">ทีม B</option>
+      //         <option value="C">ทีม C</option>
+      //         <option value="E">ทีม E</option>
+      //         <option value="F">ทีม F</option>
+      //         <option value="G">ทีม G</option>
+      //         <option value="H">ทีม H</option>
+      //         <option value="I">ทีม I</option>
+      //         <option value="J">ทีม J</option>
+      //       </select>
+      //     </div>
+      //   </div>
+      // `,
       showCancelButton: true,
       confirmButtonText: "อนุมัติ",
       cancelButtonText: "ยกเลิก",
-      preConfirm: () => {
-        const team = document.getElementById("teamSelect").value;
-        if (!team) {
-          Swal.showValidationMessage("กรุณาเลือกทีมก่อนอนุมัติ");
-          return false;
-        }
-        return team;
-      },
+      // preConfirm: () => {
+      //   const team = document.getElementById("teamSelect").value;
+      //   if (!team) {
+      //     Swal.showValidationMessage("กรุณาเลือกทีมก่อนอนุมัติ");
+      //     return false;
+      //   }
+      //   return team;
+      // },
     }).then((result) => {
       if (result.isConfirmed) {
-        const selectedTeam = result.value;
+        // const selectedTeam = result.value;
 
         // รวมข้อมูลที่รับเข้ามา (data) กับ team
         const payload = {
           ...data,
-          team: selectedTeam,
+          // team: selectedTeam,
           role_id: 2,
         };
 

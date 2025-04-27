@@ -1662,11 +1662,11 @@ app.get("/listmembers", (req, res) => {
 
 app.put("/users/approve/:id", (req, res) => {
   const { id } = req.params;
-  const { team, role_id } = req.body;
+  const { role_id } = req.body;
 
   db.query(
-    "UPDATE members SET team = ?, role_id = ? WHERE member_id = ?",
-    [team, role_id, id],
+    "UPDATE members SET role_id = ? WHERE member_id = ?",
+    [role_id, id],
     (err, result) => {
       if (err) {
         console.error("DB Error:", err);

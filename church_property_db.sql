@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost
--- Generation Time: Apr 25, 2025 at 07:19 PM
--- Server version: 10.4.28-MariaDB
--- PHP Version: 8.2.4
+-- Host: 127.0.0.1
+-- Generation Time: Apr 27, 2025 at 08:27 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -43,21 +43,6 @@ CREATE TABLE `borrow_request` (
 -- Dumping data for table `borrow_request`
 --
 
-INSERT INTO `borrow_request` (`request_id`, `member_id`, `product_id`, `quantity`, `request_date`, `due_return_date`, `receive_date`, `return_date`, `note`) VALUES
-(13, 'M002', 1, 5, '2025-04-09', '2025-04-17', NULL, '0000-00-00', 'ยืม'),
-(14, 'M002', 1, 2, '2025-04-23', '2025-04-30', NULL, '0000-00-00', 'ยืมทั้งหมด'),
-(15, 'M002', 1, 1, '2025-04-23', '2025-04-23', NULL, '0000-00-00', 'เลยกำหนด'),
-(16, 'M002', 3, 4, '2025-04-01', '2025-04-07', NULL, '0000-00-00', 'งานแต่ง'),
-(17, 'M002', 1, 3, '2025-04-01', '2025-04-07', NULL, '0000-00-00', 'test'),
-(18, 'M002', 5, 1, '2025-04-24', '2025-05-01', NULL, '0000-00-00', 'งานเลี้ยง'),
-(19, '3', 1, 1, '2025-04-24', '2025-04-26', NULL, '0000-00-00', 'aaaa'),
-(20, 'M002', 5, 1, '2025-04-25', '2025-05-02', NULL, '0000-00-00', 'ฟฟฟ'),
-(21, 'M002', 3, 3, '2025-04-25', '2025-05-02', NULL, NULL, 'fdsfdsfd'),
-(22, 'M002', 5, 2, '2025-04-29', '2025-05-06', NULL, NULL, 'rrfgfdf'),
-(23, 'M002', 6, 1, '2025-04-30', '2025-05-07', '2025-04-26', NULL, 'dfsdfsdfs'),
-(24, 'M002', 13, 1, '2025-04-28', '2025-05-05', '2025-04-26', NULL, 'fsdf'),
-(25, 'M002', 13, 3, '2025-04-29', '2025-05-06', '2025-04-26', NULL, 'fgdfgdfgdfgd'),
-(26, 'M002', 55, 1, '2025-04-25', '2025-05-02', NULL, NULL, ' xcxxxx');
 
 -- --------------------------------------------------------
 
@@ -77,22 +62,6 @@ CREATE TABLE `borrow_request_status` (
 --
 -- Dumping data for table `borrow_request_status`
 --
-
-INSERT INTO `borrow_request_status` (`status_id`, `request_id`, `status_name`, `cancel_reason`, `canceled_by`, `updated_date`) VALUES
-(1, 13, 'คืนไม่ครบและเลยกำหนด', NULL, NULL, NULL),
-(2, 14, 'คืนของแล้ว', NULL, NULL, NULL),
-(3, 15, 'คืนของแล้ว', NULL, NULL, NULL),
-(4, 16, 'คืนไม่ครบและเลยกำหนด', NULL, NULL, NULL),
-(5, 17, 'คืนไม่ครบและเลยกำหนด', NULL, NULL, NULL),
-(6, 18, 'ถูกยกเลิก', 'ชุดขาด', 'test@example.com', '2025-04-24'),
-(7, 19, 'ผู้ยืมได้รับของแล้ว', NULL, NULL, NULL),
-(8, 20, 'ผู้ยืมได้รับของแล้ว', NULL, NULL, NULL),
-(9, 21, 'ผู้ยืมได้รับของแล้ว', NULL, NULL, NULL),
-(10, 22, 'ผู้ยืมได้รับของแล้ว', NULL, NULL, NULL),
-(11, 23, 'ผู้ยืมได้รับของแล้ว', NULL, NULL, NULL),
-(12, 24, 'ผู้ยืมได้รับของแล้ว', NULL, NULL, NULL),
-(13, 25, 'ผู้ยืมได้รับของแล้ว', NULL, NULL, NULL),
-(14, 26, 'อนุมัติแล้ว', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -145,10 +114,8 @@ CREATE TABLE `members` (
 --
 
 INSERT INTO `members` (`member_id`, `prefix`, `first_name`, `last_name`, `full_name`, `email`, `team`, `phone_number`, `birthday`, `username`, `password`, `role_id`, `join_date`) VALUES
-('3', 'นาย', 'โอ', 'อิท', 'โอ อิท', 'admin@admin.com', 'J', '0971517780', '2007-04-24', 'user1', '123456789', 2, '2025-04-25 12:38:13'),
-('M001', 'นาย', 'สมชาย', 'ใจดี', 'สมชาย ใจดี', 'test@example.com', 'A', '0800000000', '1995-05-01', 'testuser', '123456789', 1, '2025-04-19 22:01:30'),
+('M001', 'นาย', 'สมชาย', 'ใจดี', 'สมชาย ใจดี', 'test@example.com', 'A', '0800000000', '1995-05-01', 'testuser', '123456', 1, '2025-04-19 22:01:30'),
 ('M002', 'นางสาว', 'ส้มโอ', 'ธรรมดี', 'ส้มโอ ธรรมดี', 'user@example.com', 'B', '0891234567', '2000-08-15', 'normaluser', '123456789', 2, '2025-04-19 22:01:30'),
-('M003', 'นางสาว', 'Yutita', 'Kaewlom', 'Yutita Kaewlom', 'Yutita.ka@t111fac.or.th', 'H', '0653876135', '2007-04-24', 'yutitak', '123456', 2, '2025-04-25 23:16:16');
 
 -- --------------------------------------------------------
 
@@ -173,12 +140,12 @@ CREATE TABLE `product` (
 --
 
 INSERT INTO `product` (`product_id`, `name`, `color`, `quantity`, `size`, `price_per_item`, `category_id`, `status`, `image`) VALUES
-(1, 'เหลืองลูกไม้', NULL, 8, NULL, 350.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/bYV68NzV/yellow-lace-and-jersey-slit-prom-dress-2.webp'),
-(2, 'เดรสโอรส', NULL, 1, NULL, 400.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/K8xQDKQz/iz63bp.jpg'),
-(3, 'เดรสบานเย็น', NULL, 0, NULL, 300.00, 1, 'ไม่พร้อมใช้งาน', 'https://i.postimg.cc/xTYLWwmp/images.jpg'),
+(1, 'เหลืองลูกไม้', NULL, 2, NULL, 350.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/bYV68NzV/yellow-lace-and-jersey-slit-prom-dress-2.webp'),
+(2, 'เดรสโอรส', 'โอรส', 1, 'L', 400.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/K8xQDKQz/iz63bp.jpg'),
+(3, 'เดรสบานเย็น', 'แดง', 6, 'S', 300.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/xTYLWwmp/images.jpg'),
 (4, 'เดรสชมพูกะปิจีบรอบ', NULL, 2, NULL, 400.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/sgKFYCYk/th-11134207-7ras9-m1fe1h2a2zebe3.jpg'),
-(5, 'เดรสเขียวเข้ม', NULL, 6, NULL, 350.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/bJ74yyPt/images-1.jpg'),
-(6, 'มินิเดรสน้ำเงิน', NULL, 4, NULL, 350.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/wTV4Pc1J/c7thdf.jpg'),
+(5, 'เดรสเขียวเข้ม', NULL, 7, NULL, 350.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/bJ74yyPt/images-1.jpg'),
+(6, 'มินิเดรสน้ำเงิน', NULL, 5, NULL, 350.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/wTV4Pc1J/c7thdf.jpg'),
 (7, 'เดรสกระโปรงม่วงพาสเทล ผ้าชีฟอง', NULL, 1, NULL, 300.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/7h4XtfDm/th-11134207-7r990-lxaxltcs0x5b71-tn.webp'),
 (8, 'เดรสกระโปรงเขียวพาสเทล ผ้าชีฟอง', NULL, 1, NULL, 300.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/9XBBFXcH/78.jpg'),
 (9, 'เดรสส้มลูกไม้ขาว', NULL, 1, NULL, 350.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/65jLnH7H/images-2.jpg'),
@@ -225,7 +192,7 @@ INSERT INTO `product` (`product_id`, `name`, `color`, `quantity`, `size`, `price
 (50, 'เสื้อแขนย้วยสีม่วง', NULL, 1, NULL, 160.00, 2, 'พร้อมใช้งาน', 'https://i.postimg.cc/ZRPKzMt4/6-3.jpg'),
 (51, 'เสื้อแขนย้วยสีเขียว', NULL, 1, NULL, 400.00, 2, 'พร้อมใช้งาน', 'https://i.postimg.cc/zX2DNhMb/images-19.jpg'),
 (52, 'เสื้อเขียวสามชั้น', NULL, 2, NULL, 250.00, 2, 'พร้อมใช้งาน', 'https://i.postimg.cc/CKkwbQKk/images-20.jpg'),
-(53, 'กระโปรงน้ำตาล', NULL, 9, NULL, 200.00, 3, 'พร้อมใช้งาน', 'https://i.postimg.cc/qvCrd5yS/images-22.jpg'),
+(53, 'กระโปรงน้ำตาล', NULL, 6, NULL, 200.00, 3, 'พร้อมใช้งาน', 'https://i.postimg.cc/qvCrd5yS/images-22.jpg'),
 (54, 'พีทขาวยาว', NULL, 6, NULL, 300.00, 3, 'พร้อมใช้งาน', 'https://i.postimg.cc/SsVFrFb2/th-11134207-7r98y-ltv4lbvy6sfz86.jpg'),
 (55, 'สีเทาชายลูกไม้', NULL, 4, NULL, 290.00, 3, 'พร้อมใช้งาน', 'https://i.postimg.cc/ZKGg6Kvs/sg-11134201-22100-e3jg6qbhz6hved.jpg'),
 (56, 'กระโปรงทอง', NULL, 5, NULL, 200.00, 3, 'พร้อมใช้งาน', 'https://i.postimg.cc/zXTmtgNY/images-23.jpg'),
@@ -256,7 +223,7 @@ INSERT INTO `product` (`product_id`, `name`, `color`, `quantity`, `size`, `price
 (81, 'กระโปรงลูกไม้ขาว สีแสด', NULL, 1, NULL, 300.00, 3, 'พร้อมใช้งาน', 'https://i.postimg.cc/fy9bgRzq/images-37.jpg'),
 (82, 'กระโปรงลูกไม้ขาว สีม่วง', NULL, 1, NULL, 300.00, 3, 'พร้อมใช้งาน', 'https://i.postimg.cc/gcQ47zqV/images-38.jpg'),
 (83, 'เสื้อคลุมขาว', NULL, 25, NULL, 250.00, 4, 'พร้อมใช้งาน', 'https://i.postimg.cc/W3Kmx8rN/images-39.jpg'),
-(84, 'สีขาวแถบทอง', NULL, 7, NULL, 350.00, 4, 'พร้อมใช้งาน', 'https://i.postimg.cc/05TdftPZ/sg-11134201-7rcca-lszsxb6ytaet96.jpg'),
+(84, 'สีขาวแถบทอง', NULL, 6, NULL, 350.00, 4, 'พร้อมใช้งาน', 'https://i.postimg.cc/05TdftPZ/sg-11134201-7rcca-lszsxb6ytaet96.jpg'),
 (85, 'ชุดคลุมขาวสั้น', NULL, 11, NULL, 350.00, 4, 'พร้อมใช้งาน', 'https://i.postimg.cc/QMdptwJN/sg-11134201-7reoj-m27w97703zgj07.jpg'),
 (86, 'ผ้าคลุมไหล่ทอง', NULL, 2, NULL, 100.00, 4, 'พร้อมใช้งาน', 'https://i.postimg.cc/d1zd51PD/nmbuix.jpg'),
 (87, 'ผ้าคลุมไหล่เหลือง', NULL, 6, NULL, 100.00, 4, 'พร้อมใช้งาน', 'https://i.postimg.cc/SNL8GkZN/images-40.jpg'),
@@ -349,7 +316,32 @@ INSERT INTO `product` (`product_id`, `name`, `color`, `quantity`, `size`, `price
 (174, 'เครื่องดูดฝุ่น ', NULL, 5, NULL, 8600.00, 7, 'พร้อมใช้งาน', 'https://i.postimg.cc/v8pVWcbV/images-95.jpg'),
 (175, 'ตู้เหล็ก', NULL, 5, NULL, 6600.00, 7, 'พร้อมใช้งาน', 'https://i.postimg.cc/CLkfJSx6/images-96.jpg'),
 (176, 'เครื่องตัดหญ้า', NULL, 1, NULL, 9500.00, 7, 'พร้อมใช้งาน', 'https://i.postimg.cc/ht0QWsxL/1139860234-5100218000401.jpg'),
-(177, 'เครื่องมัลติมีเดียโปรเจคเตอร์', NULL, 1, NULL, 23300.00, 7, 'พร้อมใช้งาน', 'https://i.postimg.cc/7LYGxzMp/images-97.jpg');
+(177, 'เครื่องมัลติมีเดียโปรเจคเตอร์', NULL, 1, NULL, 23300.00, 7, 'พร้อมใช้งาน', 'https://i.postimg.cc/7LYGxzMp/images-97.jpg'),
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `reasons`
+--
+
+CREATE TABLE `reasons` (
+  `id` int(11) NOT NULL,
+  `description` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `reasons`
+--
+
+INSERT INTO `reasons` (`id`, `description`) VALUES
+(1, 'เกินเวลาที่กำหนด'),
+(2, 'ของมีรอยขีดข่วนหรือแตกหัก'),
+(3, 'หาของไม่พบ ต้องจ่ายเต็มราคา'),
+(4, 'คืนของผิดชิ้น ต้องเปลี่ยนคืนใหม่'),
+(5, 'คืนของครบและสมบูรณ์'),
+(6, 'คืนของบางชิ้น ขาดบางชิ้น'),
+(7, 'จ่ายค่าปรับแล้ว'),
+(8, 'เหตุผลอื่นๆ');
 
 -- --------------------------------------------------------
 
@@ -364,24 +356,15 @@ CREATE TABLE `return_detail` (
   `returned_damaged` int(11) DEFAULT NULL,
   `returned_lost` int(11) DEFAULT NULL,
   `return_date` date DEFAULT NULL,
-  `fine_amount` decimal(10,2) DEFAULT NULL,
+  `fine_amount` varchar(255) DEFAULT NULL,
   `received_by` varchar(255) DEFAULT NULL,
   `returned_by` varchar(255) DEFAULT NULL,
-  `note` text DEFAULT NULL
+  `note` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `return_detail`
 --
-
-INSERT INTO `return_detail` (`return_id`, `request_id`, `returned_good`, `returned_damaged`, `returned_lost`, `return_date`, `fine_amount`, `received_by`, `returned_by`, `note`) VALUES
-(1, 13, 2, 0, 0, '2025-04-23', 0.00, 'M002', 'M001', 'คืน'),
-(2, 14, 0, 1, 1, '2025-04-23', 350.00, 'M002', 'M001', 'แย่ทำขาด'),
-(4, 16, 0, 0, 3, '2025-04-24', 3600.00, 'M002', 'M001', ''),
-(5, 17, 0, 0, 1, '2025-04-24', 350.00, 'M002', 'M001', ''),
-(6, 17, 2, 0, 0, '2025-04-24', 0.00, 'M002', 'M001', ''),
-(7, 17, 1, 0, 0, '2025-04-24', 900.00, 'M002', 'M001', ''),
-(8, 15, 1, 0, 0, '2025-04-25', 150.00, 'M002', 'M001', 'ฟหกฟหก');
 
 -- --------------------------------------------------------
 
@@ -466,6 +449,12 @@ ALTER TABLE `product`
   ADD KEY `category_id` (`category_id`);
 
 --
+-- Indexes for table `reasons`
+--
+ALTER TABLE `reasons`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `return_detail`
 --
 ALTER TABLE `return_detail`
@@ -492,13 +481,13 @@ ALTER TABLE `sizes`
 -- AUTO_INCREMENT for table `borrow_request`
 --
 ALTER TABLE `borrow_request`
-  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
 
 --
 -- AUTO_INCREMENT for table `borrow_request_status`
 --
 ALTER TABLE `borrow_request_status`
-  MODIFY `status_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `status_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `categories`
@@ -510,13 +499,13 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=179;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=180;
 
 --
 -- AUTO_INCREMENT for table `return_detail`
 --
 ALTER TABLE `return_detail`
-  MODIFY `return_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `return_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `roles`
