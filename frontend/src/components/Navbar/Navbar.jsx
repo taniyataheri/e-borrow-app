@@ -24,18 +24,26 @@ const Navbar = () => {
   const [role, setRole] = useState(null);
   
   useEffect(() => {
+    try {
+      setRole(user.role);
+    } catch (error) {
+      navigate("/");
+    }
+  }, [auth]);
+
+  useEffect(() => {
     const fetchBorrow = () => {
-      console.log("Fetching borrow data...");
-      console.log("role",user.role);
-      if (user.role === 1) {
+      // console.log("Fetching borrow data...");
+      // console.log("role",user.role);
+      if (user && user.role === 1) {
         axios.get("http://localhost:3001/borrow", {
-            headers: { Authorization: token }
+          headers: { Authorization: token }
         })
         .then((response) => {
           const pendingBorrows = response.data.filter((item) => item.status_name === "รอการอนุมัติ");
           console.log("รายการรอแสดง", pendingBorrows.length);
-  
-          if ( pendingBorrows.length > 0 && location.pathname !== "/History" ) {
+      
+          if (pendingBorrows.length > 0 && location.pathname !== "/History") {
             sessionStorage.setItem("notifiedCount", pendingBorrows.length);
             Swal.fire({
               icon: "info",
@@ -71,15 +79,6 @@ const Navbar = () => {
     const intervalId = setInterval(fetchBorrow, 300000);
     return () => clearInterval(intervalId);
   }, []);
-  
-
-  useEffect(() => {
-    try {
-      setRole(user.role);
-    } catch (error) {
-      navigate("/");
-    }
-  }, [auth]);
 
   const handleLogout = () => {
     Swal.fire({
@@ -98,19 +97,23 @@ const Navbar = () => {
   };
 
   useEffect(() => {
-    if (user && user.role === 0) {
-      Swal.fire({
-        icon: "warning",
-        title: "ไม่มีสิทธิ์เข้าถึง",
-        text: "กรุณาเข้าสู่ระบบใหม่",
-        confirmButtonText: "ตกลง",
-        confirmButtonColor: "#d33",
-      }).then(() => {
-        logout();
-        navigate("/");
-      });
+    if (user) {
+      if (user.role === 0) {
+        Swal.fire({
+          icon: "warning",
+          title: "ไม่มีสิทธิ์เข้าถึง",
+          text: "กรุณาเข้าสู่ระบบใหม่",
+          confirmButtonText: "ตกลง",
+          confirmButtonColor: "#d33",
+        }).then(() => {
+          logout();
+          navigate("/");
+        });
+      }
+    } else {
+      navigate("/");
     }
-  }, [user]);
+  }, [user, navigate]);
 
   return (
     <nav className="navbar">

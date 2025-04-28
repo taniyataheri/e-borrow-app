@@ -196,7 +196,8 @@ app.put("/products/:id", upload.single("imageFile"), (req, res) => {
 // ลบข้อมูล product
 app.delete("/products/:id", (req, res) => {
   const { id } = req.params;
-  db.query("DELETE FROM product WHERE product_id = ?", [id], (err, results) => {
+  db.query("UPDATE product SET status = 'รายการนี้ถูกลบแล้ว' WHERE product_id = ?", [id], (err, results) => {
+    
     if (err) {
       res.status(500).send(err);
     } else {
@@ -1181,6 +1182,7 @@ app.get("/return-detail", (req, res) => {
           rd.*,
           br.product_id,
           p.name AS product_name,
+          m.team,
           CASE
               WHEN m.full_name IS NOT NULL AND m.full_name != ''
                   THEN m.full_name
@@ -1308,6 +1310,7 @@ app.get("/return-detail", verifyToken, (req, res) => {
     br.due_return_date,
     br.return_date,
     br.note,
+    m.team,
     IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
     CASE 
         WHEN m.full_name IS NOT NULL AND m.full_name != '' 
@@ -1676,3 +1679,6 @@ app.put("/users/approve/:id", (req, res) => {
     }
   );
 });
+
+
+

@@ -607,6 +607,7 @@ const handleCloseModalReturn = () => {
                 <tr>
                   <th>รายการที่</th>
                   {role === 1 && <th>ผู้ใช้งาน</th>}
+                  <th>ทีม</th>
                   <th>ทรัพย์สิน</th>
                   <th>จำนวนที่ยืม</th>
                   <th>วันที่ยืม</th>
@@ -615,7 +616,7 @@ const handleCloseModalReturn = () => {
                   {/* <th>วันที่คืน</th> */}
                   <th>ค้างคืน</th>
                   {/* <th>คืนแล้ว</th> */}
-                  {/* <th>ค่าปรับ</th> */}
+                  <th>วัตถุประสงค์การยืม</th>
                   <th>สถานะ</th>
                   {role === 1 && <th>จัดการ</th>}
                 </tr>
@@ -654,6 +655,7 @@ const handleCloseModalReturn = () => {
                             : `${r.frist_name} ${r.last_name}`}
                         </td>
                       )}
+                      <td>{r.team}</td>
                       {role === 1 && <td>{r.product_name}</td>}
                       {role === 2 && <td>{r.product_name}</td>}
                       <td>{r.quantity}</td>
@@ -674,6 +676,7 @@ const handleCloseModalReturn = () => {
                       )}
                       {/* <td style={{ color: r.status_name === "คืนไม่ครบ" ? "green" : "black" }}>{["รับของแล้ว", "คืนไม่ครบ"].includes(r.status_name) ? (r.quantity || 0) - (r.total || 0) : r.status_name === "ส่งคืนแล้ว" ? 0 : "-"}</td> */}
                       {/* <td>{r.return_date ? (getFine(r.request_date, r.return_date) * r.price_per_item).toFixed(2) : 0}</td> */}
+                      <td>{r.note}</td>
                       <td
                         style={{
                           fontWeight: "500",
@@ -1082,7 +1085,11 @@ const handleCloseModalReturn = () => {
           <Modal.Footer>
             <Button
               variant="secondary"
-              onClick={() => setShowApproveModal(false)}
+              onClick={() => {
+                setShowApproveModal(false);
+                setApproveNote("");
+                setApproveTarget(null);
+              }}
             >
               ยกเลิก
             </Button>

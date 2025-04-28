@@ -81,7 +81,7 @@ function Home() {
   });
 
   const auth = useContext(AuthContext);
-  const {user,token } = auth;
+  const { user, token } = auth;
 
   const handleChangeBorrow = (e) => {
     if (e.target.name === "quantity") {
@@ -94,7 +94,7 @@ function Home() {
       if (!isNaN(selectedDate)) {
         // เพิ่ม 7 วัน
         const newEndDate = new Date(selectedDate);
-        
+
         newEndDate.setDate(newEndDate.getDate() + 7);
         setFormBorrow((prev) => ({
           ...prev,
@@ -190,11 +190,9 @@ function Home() {
     setPreviewImage(null);
   };
 
-  
-
   const handleAddProduct = () => {
     const { name, color, qta, size, price, category_id, status, image, imageFile } = newProduct;
-  
+
     // ตรวจสอบข้อมูล
     const missing = [];
     if (!name) missing.push("ชื่อ");
@@ -205,7 +203,7 @@ function Home() {
     if (!category_id) missing.push("ประเภท");
     if (!status) missing.push("สถานะ");
     if (!image && !imageFile) missing.push("รูปภาพ (URL หรือ ไฟล์)");
-  
+
     if (missing.length > 0) {
       Swal.fire({
         icon: "warning",
@@ -215,23 +213,23 @@ function Home() {
       });
       return;
     }
-  
+
     // ใช้ FormData เพื่อรองรับไฟล์
     const formData = new FormData();
-          formData.append("name", name);
-          formData.append("color", color);
-          formData.append("qta", qta);
-          formData.append("size", size);
-          formData.append("price_per_item", parseFloat(price));
-          formData.append("category_id", category_id);
-          formData.append("status", status);
-  
+    formData.append("name", name);
+    formData.append("color", color);
+    formData.append("qta", qta);
+    formData.append("size", size);
+    formData.append("price_per_item", parseFloat(price));
+    formData.append("category_id", category_id);
+    formData.append("status", status);
+
     if (imageFile) {
       formData.append("imageFile", imageFile); // ส่งไฟล์
     } else {
       formData.append("image", image); // ส่ง URL
     }
-  
+
     axios
       .post("http://localhost:3001/products", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -240,7 +238,7 @@ function Home() {
         fetchProducts();
         resetNewProduct();
         setShowAdd(false);
-  
+
         Swal.fire({
           icon: "success",
           title: "เพิ่มทรัพย์สินสำเร็จ",
@@ -257,11 +255,11 @@ function Home() {
         });
       });
   };
-  
+
   const handleImageChange = (e) => {
     const value = e.target.value;
     setImage(value);
-    setPreviewImage(value);  // ตั้งค่าภาพ preview เมื่อมีการเปลี่ยนแปลง URL
+    setPreviewImage(value); // ตั้งค่าภาพ preview เมื่อมีการเปลี่ยนแปลง URL
   };
 
   useEffect(() => {
@@ -285,36 +283,38 @@ function Home() {
   const hasNotified = useRef(false);
 
   const fetchBorrow = () => {
-    axios.get("http://localhost:3001/borrow", {
-      headers: {
-        Authorization: token, // <--- ส่ง token ที่คุณได้จาก context
-      },
-    }).then((response) => {
-      const pendingBorrows = response.data.filter((item) => item.status_name === "รอการอนุมัติ");
+    axios
+      .get("http://localhost:3001/borrow", {
+        headers: {
+          Authorization: token, // <--- ส่ง token ที่คุณได้จาก context
+        },
+      })
+      .then((response) => {
+        const pendingBorrows = response.data.filter((item) => item.status_name === "รอการอนุมัติ");
 
-      // ดึงค่าจาก sessionStorage
-      const lastNotifiedCount = sessionStorage.getItem("notifiedCount");
+        // ดึงค่าจาก sessionStorage
+        const lastNotifiedCount = sessionStorage.getItem("notifiedCount");
 
-      if (user.role === 1) {
-        if (pendingBorrows.length > 0 && pendingBorrows.length !== Number(lastNotifiedCount)) {
-          // อัปเดตค่าใหม่ใน sessionStorage
-          sessionStorage.setItem("notifiedCount", pendingBorrows.length);
+        if (user.role === 1) {
+          if (pendingBorrows.length > 0 && pendingBorrows.length !== Number(lastNotifiedCount)) {
+            // อัปเดตค่าใหม่ใน sessionStorage
+            sessionStorage.setItem("notifiedCount", pendingBorrows.length);
 
-          Swal.fire({
-            icon: "info",
-            title: "แจ้งเตือน",
-            html: `คุณมี <strong>${pendingBorrows.length}</strong> รายการรออนุมัติ`,
-            confirmButtonText: "ไปยังหน้ารายการคำขอ",
-            confirmButtonColor: "#2e7d32",
-          }).then((result) => {
-            if (result.isConfirmed) {
-              sessionStorage.setItem("fromNotification", "true");
-              navigate("/History");
-            }
-          });
+            Swal.fire({
+              icon: "info",
+              title: "แจ้งเตือน",
+              html: `คุณมี <strong>${pendingBorrows.length}</strong> รายการรออนุมัติ`,
+              confirmButtonText: "ไปยังหน้ารายการคำขอ",
+              confirmButtonColor: "#2e7d32",
+            }).then((result) => {
+              if (result.isConfirmed) {
+                sessionStorage.setItem("fromNotification", "true");
+                navigate("/History");
+              }
+            });
+          }
         }
-      }
-    });
+      });
   };
 
   const fetchProducts = () => {
@@ -362,7 +362,6 @@ function Home() {
         [name]: value,
       }));
     }
-    
   };
   // const updateProduct = (id) => {
   //   const { name, color, qta, size, price, category_id, status, image, previewImage } = newProduct;
@@ -376,7 +375,7 @@ function Home() {
   //   if (!category_id) missing.push("ประเภท");
   //   if (!status) missing.push("สถานะ");
   //   if (!image && !imageFile) missing.push("รูปภาพ (URL หรือ ไฟล์)");
-  
+
   //   if (missing.length > 0) {
   //     Swal.fire({
   //       icon: "warning",
@@ -412,7 +411,7 @@ function Home() {
   //   //     Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถอัปเดตข้อมูลได้", "error");
   //   //   });
   // };
-  
+
   // const updateProduct = (id) => {
   //   const missing = [];
   //   if (!name) missing.push("ชื่อ");
@@ -423,7 +422,7 @@ function Home() {
   //   if (!category_id) missing.push("ประเภท");
   //   if (!status) missing.push("สถานะ");
   //   if (!image && !newProduct.imageFile) missing.push("รูปภาพ");
-  
+
   //   if (missing.length > 0) {
   //     Swal.fire({
   //       icon: "warning",
@@ -433,7 +432,7 @@ function Home() {
   //     });
   //     return;
   //   }
-  
+
   //   const formData = new FormData();
   //   formData.append("name", name);
   //   formData.append("color", color);
@@ -442,13 +441,13 @@ function Home() {
   //   formData.append("price_per_item", parseFloat(price));
   //   formData.append("category_id", category_id);
   //   formData.append("status", status);
-  
+
   //   if (newProduct.imageFile) {
   //     formData.append("imageFile", newProduct.imageFile);
   //   } else {
   //     formData.append("image", newProduct.image);
   //   }
-  
+
   //   axios
   //     .post(`http://localhost:3001/products/update/${id}`, formData, {
   //       headers: { "Content-Type": "multipart/form-data" },
@@ -471,7 +470,7 @@ function Home() {
   //         confirmButtonColor: "#d33",
   //       });
   //     });
-  
+
   //   // if(!name || !color || !qta || !size || !price || !category_id || !status || !image || !previewImage) {
   //   //   axios
   //   //   .put(`http://localhost:3001/products/${id}`, {
@@ -492,7 +491,7 @@ function Home() {
   // };
 
   const updateProduct = (id) => {
-    const {imageFile } = newProduct;
+    const { imageFile } = newProduct;
     const formData = new FormData();
     formData.append("name", name);
     formData.append("color", color);
@@ -504,7 +503,6 @@ function Home() {
     formData.append("image", image);
     formData.append("imageFile", imageFile);
 
-  
     axios
       .put(`http://localhost:3001/products/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -529,7 +527,7 @@ function Home() {
         });
       });
   };
-  
+
   const borrowProduct = () => {
     const { quantity, request_date, due_return_date, note } = formBorrow;
 
@@ -710,13 +708,17 @@ function Home() {
           </div>
 
           {categories.map((category) => {
-            const filteredByCategory = filteredProducts.filter((product) => product.category_id === category.category_id);
-
+            var filteredByCategory = {};
+            if (role == 1) {
+              filteredByCategory = filteredProducts.filter((product) => product.category_id === category.category_id);
+            } else {
+              filteredByCategory = filteredProducts.filter((product) => product.category_id === category.category_id && product.status !== "รายการนี้ถูกลบแล้ว");
+            }
             const totalPages = Math.ceil(filteredByCategory.length / itemsPerPage);
             const currentPage = currentPageByCategory[category.category_id] || 1;
             const startIndex = (currentPage - 1) * itemsPerPage;
             const paginatedProducts = filteredByCategory.slice(startIndex, startIndex + itemsPerPage);
-            // console.log("paginatedProducts:", paginatedProducts);
+            console.log("filteredByCategory:", filteredByCategory);
             return (
               <div key={category.category_id} className="mt-4 mx-4">
                 <div className="category-header">
@@ -890,19 +892,12 @@ function Home() {
                   <div className="row">
                     <Form.Group className="col-12 col-lg-6 mb-3">
                       <Form.Label>ชื่อ</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                      />
+                      <Form.Control type="text" value={name} onChange={(e) => setName(e.target.value)} />
                     </Form.Group>
 
                     <Form.Group className="col-12 col-lg-6 mb-3">
                       <Form.Label>ประเภท</Form.Label>
-                      <Form.Select
-                        value={category_id}
-                        onChange={(e) => setCategoryId(e.target.value)}
-                      >
+                      <Form.Select value={category_id} onChange={(e) => setCategoryId(e.target.value)}>
                         <option value="">เลือกประเภท</option>
                         <option value="1">ชุดเดรสหรือชุด</option>
                         <option value="2">เสื้อ</option>
@@ -913,7 +908,6 @@ function Home() {
                         <option value="7">ครุภัณฑ์</option>
                       </Form.Select>
                     </Form.Group>
-                    
                   </div>
 
                   <div className="row">
@@ -926,72 +920,55 @@ function Home() {
 
                     <Form.Group className="col-12 col-lg-6 mb-3">
                       <Form.Label>สี</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={color}
-                        onChange={(e) => setColor(e.target.value)}
-                      />
+                      <Form.Control type="text" value={color} onChange={(e) => setColor(e.target.value)} />
                     </Form.Group>
                   </div>
 
                   <div className="row">
                     <Form.Group className="col-12 col-lg-6 mb-3">
                       <Form.Label>ราคาต่อชิ้น</Form.Label>
-                      <Form.Control
-                        type="number"
-                        value={price}
-                        onChange={(e) => setPrice(e.target.value)}
-                      />
+                      <Form.Control type="number" value={price} onChange={(e) => setPrice(e.target.value)} />
                     </Form.Group>
 
                     <Form.Group className="col-12 col-lg-6 mb-3">
                       <Form.Label>จำนวน</Form.Label>
-                      <Form.Control
-                        type="number"
-                        value={qta}
-                        onChange={(e) => setQta(e.target.value)}
-                      />
+                      <Form.Control type="number" value={qta} onChange={(e) => setQta(e.target.value)} />
                     </Form.Group>
                   </div>
 
                   <div className="row">
                     <Form.Group className="col-12 col-lg-6 mb-3">
                       <Form.Label>สถานะ</Form.Label>
-                      <Form.Select
-                        value={status}
-                        onChange={(e) => setStatus(e.target.value)}
-                      >
-                        <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
-                        <option value="ไม่พร้อมใช้งาน">ไม่พร้อมใช้งาน</option>
+                      <Form.Select value={status} onChange={(e) => setStatus(e.target.value)}>
+                        {status === "รายการนี้ถูกลบแล้ว" ? (
+                          <>
+                            <option value="รายการนี้ถูกลบแล้ว" selected disabled>รายการนี้ถูกลบแล้ว</option>
+                            <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
+                            <option value="ไม่พร้อมใช้งาน">ไม่พร้อมใช้งาน</option>
+                          </>
+                        ) : (
+                          <>
+                            <option value="ไม่พร้อมใช้งาน">ไม่พร้อมใช้งาน</option>
+                            <option value="พร้อมใช้งาน">พร้อมใช้งาน</option>
+                          </>
+                        )}
                       </Form.Select>
                     </Form.Group>
 
                     <Form.Group className="col-12 col-lg-6 mb-3">
                       <Form.Label>รูป (url)</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={image}
-                        onChange={handleImageChange}
-                      />
+                      <Form.Control type="text" value={image} onChange={handleImageChange} />
                     </Form.Group>
                   </div>
                   <Form.Group className="col-12 col-lg-12 mb-3">
-                  <Form.Label>แนบรูปภาพ (ถ้ามี)</Form.Label>
-                  <Form.Control type="file" name="imageFile" accept="image/*" onChange={handleChangeNewProduct} />
-                  {(previewImage || image) && (
-                    <div className="mt-4 d-flex justify-content-center">
-                      <img
-                        src={previewImage ? previewImage : image}
-                        alt="Preview"
-                        name="preview"
-                        className="img-fluid rounded"
-                        style={{ maxHeight: "150px" }}
-                      />
-                    </div>
-                  )}
-
+                    <Form.Label>แนบรูปภาพ (ถ้ามี)</Form.Label>
+                    <Form.Control type="file" name="imageFile" accept="image/*" onChange={handleChangeNewProduct} />
+                    {(previewImage || image) && (
+                      <div className="mt-4 d-flex justify-content-center">
+                        <img src={previewImage ? previewImage : image} alt="Preview" name="preview" className="img-fluid rounded" style={{ maxHeight: "150px" }} />
+                      </div>
+                    )}
                   </Form.Group>
-                  
                 </Form>
               </Modal.Body>
               <Modal.Footer>
@@ -1020,7 +997,7 @@ function Home() {
             </Modal>
           )}
 
-          <Modal show={showBorrow} onHide={handleCloseBorrow}  centered size="lg">
+          <Modal show={showBorrow} onHide={handleCloseBorrow} centered size="lg">
             <Modal.Header closeButton>
               <Modal.Title>ส่งคำร้องขอยืมทรัพย์สิน</Modal.Title>
             </Modal.Header>

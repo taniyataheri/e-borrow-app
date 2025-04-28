@@ -165,6 +165,7 @@ function ReturnHistory() {
                   <th>คำขอ</th>
                   <th>ทรัพย์สิน</th>
                   <th>ผู้คืน</th>
+                  <th>ทีม</th>
                   <th>สมบูรณ์</th>
                   <th>ชำรุด</th>
                   <th>สูญหาย</th>
@@ -179,7 +180,7 @@ function ReturnHistory() {
                 <tbody>
                   {paginatedList.length === 0 ? (
                     <tr>
-                      <td colSpan="11" className="text-center text-muted">
+                      <td colSpan="12" className="text-center text-muted">
                         ไม่พบข้อมูล
                       </td>
                     </tr>
@@ -189,6 +190,7 @@ function ReturnHistory() {
                         <td>{(currentPage - 1) * itemsPerPage + idx + 1}</td>
                         <td>{r.product_name}</td>
                         <td>{r.received_by_name}</td>
+                        <td>{r.team}</td>
                         <td>{r.returned_good}</td>
                         <td>{r.returned_damaged}</td>
                         <td>{r.returned_lost}</td>
@@ -207,7 +209,7 @@ function ReturnHistory() {
                 <tbody>
                   {paginatedList.length === 0 ? (
                     <tr>
-                      <td colSpan="11" className="text-center text-muted">
+                      <td colSpan="12" className="text-center text-muted">
                         ไม่พบข้อมูล
                       </td>
                     </tr>
@@ -217,10 +219,11 @@ function ReturnHistory() {
                         <td>{(currentPage - 1) * itemsPerPage + idx + 1}</td>
                         <td>{r.product_name}</td>
                         <td>{r.received_by_name}</td>
+                        <td>{r.team}</td>
                         <td>{r.returned_good}</td>
                         <td>{r.returned_damaged}</td>
                         <td>{r.returned_lost}</td>
-                        <td>{r.fine_amount?.toLocaleString()} บาท</td>
+                        <td>{r.fine_amount?.toLocaleString()}</td>
                         <td>{r.note || "-"}</td>
                         <td>{r.returned_by_name || "-"}</td>
                         <td>{r.status_name || "-"}</td>
@@ -235,7 +238,7 @@ function ReturnHistory() {
                 <tbody>
                   {paginatedList.length === 0 ? (
                     <tr>
-                      <td colSpan="11" className="text-center text-muted">
+                      <td colSpan="12" className="text-center text-muted">
                         ไม่พบรายการค้างคืน
                       </td>
                     </tr>
@@ -245,10 +248,11 @@ function ReturnHistory() {
                         <td>{(currentPage - 1) * itemsPerPage + idx + 1}</td>
                         <td>{r.product_name}</td>
                         <td>{r.received_by_name}</td>
+                        <td>{r.team}</td>
                         <td>{r.returned_good}</td>
                         <td>{r.returned_damaged}</td>
                         <td>{r.returned_lost}</td>
-                        <td>{r.fine_amount?.toLocaleString()} บาท</td>
+                        <td>{r.fine_amount?.toLocaleString()}</td>
                         <td>{r.note || "-"}</td>
                         <td>{r.returned_by_name || "-"}</td>
                         <td>{r.status_name || "-"}</td>
@@ -263,7 +267,7 @@ function ReturnHistory() {
                 <tbody>
                   {paginatedList.length === 0 ? (
                     <tr>
-                      <td colSpan="11" className="text-center text-muted">
+                      <td colSpan="12" className="text-center text-muted">
                         ไม่พบรายการค้างคืน
                       </td>
                     </tr>
@@ -273,10 +277,11 @@ function ReturnHistory() {
                         <td>{(currentPage - 1) * itemsPerPage + idx + 1}</td>
                         <td>{r.product_name}</td>
                         <td>{r.received_by_name}</td>
+                        <td>{r.team}</td>
                         <td>{r.returned_good}</td>
                         <td>{r.returned_damaged}</td>
                         <td>{r.returned_lost}</td>
-                        <td>{r.fine_amount?.toLocaleString()} บาท</td>
+                        <td>{r.fine_amount?.toLocaleString()}</td>
                         <td>{r.note || "-"}</td>
                         <td>{r.returned_by_name || "-"}</td>
                         <td>{r.status_name || "-"}</td>
