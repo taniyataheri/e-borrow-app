@@ -155,7 +155,23 @@ function History() {
           Authorization: token, // ✅ เพิ่มตรงนี้เหมือนกัน
         },
       })
-      .then((res) => setHistory(res.data));
+      .then((res) => setHistory(res.data))
+      .catch((error) => {
+        console.error("Error fetching borrow data:", error);
+        if (error.response) {
+          Swal.fire({
+            icon: "error",
+            title: "เกิดข้อผิดพลาด",
+            text: error.response.data.error,
+          });
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "เกิดข้อผิดพลาด",
+            text: "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ",
+          });
+        }
+      });
   };
   useEffect(() => {
     if (showReturnModal && user && user.username) {
@@ -181,10 +197,29 @@ function History() {
         qty,
         product_id,
       })
-      .then(() => {
-        role === 1 ? fetchBorrow() : fetchBorrowMember(user.id);
+      .then((res) => {
+        Swal.fire({
+          icon: "success",
+          title: "สำเร็จ",
+          text: res.data.message, // เช่น "อนุมัติการยืมสำเร็จ"
+        }).then(() => {
+          role === 1 ? fetchBorrow() : fetchBorrowMember(user.id);
+        });
       })
       .catch((error) => {
+        if (error.response) {
+          Swal.fire({
+            icon: "error",
+            title: "เกิดข้อผิดพลาด",
+            text: error.response.data.error, // เช่น "จำนวนสินค้าไม่เพียงพอ ไม่สามารถอนุมัติได้"
+          });
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "เกิดข้อผิดพลาด",
+            text: "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้",
+          });
+        }
         console.error("Update error:", error);
       });
   };

@@ -137,7 +137,9 @@ app.put("/products/:id", upload.single("imageFile"), (req, res) => {
 
   // ถ้าไม่มีทั้ง imageFile และ image เดิม
   if (!req.file && (!image || image.trim() === "")) {
-    return res.status(400).json({ message: "กรุณาแนบรูปภาพหรือใส่ URL รูปเดิม" });
+    return res
+      .status(400)
+      .json({ message: "กรุณาแนบรูปภาพหรือใส่ URL รูปเดิม" });
   }
 
   db.query(
@@ -162,7 +164,6 @@ app.put("/products/:id", upload.single("imageFile"), (req, res) => {
     }
   );
 });
-
 
 // app.put("/products/:id", upload.single("imageFile"), (req, res) => {
 //   const { id } = req.params;
@@ -196,14 +197,17 @@ app.put("/products/:id", upload.single("imageFile"), (req, res) => {
 // ลบข้อมูล product
 app.delete("/products/:id", (req, res) => {
   const { id } = req.params;
-  db.query("UPDATE product SET status = 'รายการนี้ถูกลบแล้ว' WHERE product_id = ?", [id], (err, results) => {
-    
-    if (err) {
-      res.status(500).send(err);
-    } else {
-      res.json({ message: "ลบทรัพย์สินสำเร็จ!!!", id: results.insertId });
+  db.query(
+    "UPDATE product SET status = 'รายการนี้ถูกลบแล้ว' WHERE product_id = ?",
+    [id],
+    (err, results) => {
+      if (err) {
+        res.status(500).send(err);
+      } else {
+        res.json({ message: "ลบทรัพย์สินสำเร็จ!!!", id: results.insertId });
+      }
     }
-  });
+  );
 });
 
 app.get("/product_sizes", (req, res) => {
@@ -337,33 +341,44 @@ app.post("/login", (req, res) => {
 app.post("/forgot-password", (req, res) => {
   const { email, password, Cpassword } = req.body;
   if (!email || !password || !Cpassword) {
-    return res.status(400).json({ message: 'กรุณากรอกข้อมูลให้ครบ' });
+    return res.status(400).json({ message: "กรุณากรอกข้อมูลให้ครบ" });
   }
 
   // ตรวจสอบว่าอีเมลมีอยู่ในระบบหรือไม่
-  const query = 'SELECT * FROM members WHERE email = ?';
+  const query = "SELECT * FROM members WHERE email = ?";
   db.query(query, [email], (err, results) => {
-    if (err) return res.status(500).json({ message: 'Database error', error: err });
+    if (err)
+      return res.status(500).json({ message: "Database error", error: err });
 
     if (results.length === 0) {
-      return res.status(404).json({ message: 'อีเมลไม่ถูกต้อง หรือไม่มีในระบบ' });
+      return res
+        .status(404)
+        .json({ message: "อีเมลไม่ถูกต้อง หรือไม่มีในระบบ" });
     }
 
     // อัปเดตรหัสผ่านใหม่
-    const updateQuery = 'UPDATE members SET password = ? WHERE email = ?';
+    const updateQuery = "UPDATE members SET password = ? WHERE email = ?";
     db.query(updateQuery, [Cpassword, email], (err, updateResult) => {
-      if (err) return res.status(500).json({ message: 'Password update failed', error: err });
+      if (err)
+        return res
+          .status(500)
+          .json({ message: "Password update failed", error: err });
 
-      return res.status(200).json({ message: 'Password has been updated successfully' });
+      return res
+        .status(200)
+        .json({ message: "Password has been updated successfully" });
     });
   });
 });
 
 app.get("/users-list", (req, res) => {
-db.query("SELECT mb.*,roles.role_name FROM members mb LEFT JOIN roles ON mb.role_id = roles.role_id", (err, results) => {
-    if (err) return res.status(500).send(err);
-    res.json(results);
-  });
+  db.query(
+    "SELECT mb.*,roles.role_name FROM members mb LEFT JOIN roles ON mb.role_id = roles.role_id",
+    (err, results) => {
+      if (err) return res.status(500).send(err);
+      res.json(results);
+    }
+  );
 });
 
 // ✅ ฟังก์ชัน verifyToken (มีอันเดียวพอ)
@@ -877,7 +892,69 @@ app.put("/borrow/:id", (req, res) => {
   const { id } = req.params;
   const { status_name, qty, product_id } = req.body;
 
-  if (status_name === "ส่งคืนแล้ว") {
+  if (status_name === "อนุมัติแล้ว") {
+    const getProductSQL = `SELECT quantity FROM product WHERE product_id = ?`;
+    db.query(getProductSQL, [product_id], (err, result) => {
+      if (err) {
+        console.error("เกิดข้อผิดพลาดในการดึงข้อมูลสินค้า:", err);
+        return res.status(500).json({ error: "Internal Server Error" });
+      }
+  
+      if (result.length === 0) {
+        return res.status(404).json({ error: "ไม่พบสินค้า" });
+      }
+  
+      const availableQty = result[0].quantity;
+  
+      if (availableQty >= qty) {
+        // มีสินค้าเพียงพอ
+        const updateBorrowSQL = `
+          UPDATE borrow_request_status 
+          SET status_name = ?
+          WHERE request_id = ?
+        `;
+        db.query(updateBorrowSQL, [status_name, id], (err) => {
+          if (err) {
+            console.error("เกิดข้อผิดพลาดในการอัปเดตสถานะการขอยืม:", err);
+            return res.status(500).json({ error: "Internal Server Error" });
+          }
+  
+          // ลดจำนวนสินค้า
+          const updateProductQtySQL = `
+            UPDATE product 
+            SET quantity = quantity - ? 
+            WHERE product_id = ?
+          `;
+          db.query(updateProductQtySQL, [qty, product_id], (err) => {
+            if (err) {
+              console.error("เกิดข้อผิดพลาดในการอัปเดตจำนวนสินค้า:", err);
+              return res.status(500).json({ error: "Internal Server Error" });
+            }
+  
+            // ถ้า quantity เหลือ 0 ให้เปลี่ยนสถานะเป็น "ไม่พร้อมใช้งาน"
+            const updateProductStatusSQL = `
+              UPDATE product 
+              SET status = ? 
+              WHERE product_id = ? AND quantity = 0
+            `;
+            db.query(updateProductStatusSQL, ["ไม่พร้อมใช้งาน", product_id], (err) => {
+              if (err) {
+                console.error("เกิดข้อผิดพลาดในการอัปเดตสถานะสินค้า:", err);
+                return res.status(500).json({ error: "Internal Server Error" });
+              }
+  
+              // ✅ ทุกอย่างสำเร็จ
+              return res.json({ message: "อัปเดตสำเร็จ!!!" });
+            });
+          });
+        });
+  
+      } else {
+        // สินค้าไม่เพียงพอ
+        return res.status(400).json({ error: "จำนวนสินค้าไม่เพียงพอ ไม่สามารถอนุมัติได้" });
+      }
+    });
+  }else if (status_name === "ส่งคืนแล้ว") {
     db.query(
       "UPDATE borrow_request SET return_date = NOW()  WHERE request_id = ?",
       [id],
@@ -926,7 +1003,7 @@ app.put("/borrow/:id", (req, res) => {
         if (err1) {
           return res.status(500).send(err1);
         }
-  
+
         // อัปเดตสถานะหลังจากสำเร็จแล้ว
         db.query(
           "UPDATE borrow_request_status SET status_name = ? WHERE request_id = ?",
@@ -935,44 +1012,45 @@ app.put("/borrow/:id", (req, res) => {
             if (err2) {
               return res.status(500).send(err2);
             }
-  
+
             // ตอบกลับเมื่อทั้งสอง query สำเร็จ
             res.json({ message: "อัปเดตสำเร็จ!!!" });
           }
         );
       }
     );
-  } else {
-    db.query(
-      "UPDATE borrow_request_status SET status_name = ? WHERE request_id = ?",
-      [status_name, id],
-      (err, results) => {
-        if (err) {
-          res.status(500).send(err);
-        } else {
-          db.query(
-            "UPDATE product SET quantity = quantity - ? WHERE product_id = ?",
-            [qty, product_id],
-            (err, results_status) => {
-              if (err) {
-                res.status(500).send(err);
-              }
-            }
-          );
-          db.query(
-            "UPDATE product SET status = ? WHERE product_id = ? AND quantity = 0",
-            ["ไม่พร้อมใช้งาน", product_id],
-            (err, results_status) => {
-              if (err) {
-                res.status(500).send(err);
-              }
-            }
-          );
-          res.json({ message: "อัปเดตสำเร็จ!!!" });
-        }
-      }
-    );
   }
+  // else {
+  //   db.query(
+  //     "UPDATE borrow_request_status SET status_name = ? WHERE request_id = ?",
+  //     [status_name, id],
+  //     (err, results) => {
+  //       if (err) {
+  //         res.status(500).send(err);
+  //       } else {
+  //         db.query(
+  //           "UPDATE product SET quantity = quantity - ? WHERE product_id = ?",
+  //           [qty, product_id],
+  //           (err, results_status) => {
+  //             if (err) {
+  //               res.status(500).send(err);
+  //             }
+  //           }
+  //         );
+  //         db.query(
+  //           "UPDATE product SET status = ? WHERE product_id = ? AND quantity = 0",
+  //           ["ไม่พร้อมใช้งาน", product_id],
+  //           (err, results_status) => {
+  //             if (err) {
+  //               res.status(500).send(err);
+  //             }
+  //           }
+  //         );
+  //         res.json({ message: "อัปเดตสำเร็จ!!!" });
+  //       }
+  //     }
+  //   );
+  // }
 });
 
 // ยกเลิกคำร้อง borrow
@@ -1121,7 +1199,7 @@ app.put("/borrow/:id/return", (req, res) => {
 
 app.get("/return-detail/user/:id", (req, res) => {
   const userId = req.params.id;
-  
+
   const sql = `
       SELECT
           rd.*,
@@ -1176,7 +1254,6 @@ app.get("/return-detail/user/:id", (req, res) => {
 
 // ✅ ดึงข้อมูล return ทั้งหมด (สำหรับผู้ดูแล)
 app.get("/return-detail", (req, res) => {
-  
   const sql = `
       SELECT
           rd.*,
@@ -1679,6 +1756,3 @@ app.put("/users/approve/:id", (req, res) => {
     }
   );
 });
-
-
-

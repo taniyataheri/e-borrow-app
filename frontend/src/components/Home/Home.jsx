@@ -710,7 +710,7 @@ function Home() {
           {categories.map((category) => {
             var filteredByCategory = {};
             if (role == 1) {
-              filteredByCategory = filteredProducts.filter((product) => product.category_id === category.category_id);
+              filteredByCategory = filteredProducts.filter((product) => product.category_id === category.category_id && product.status !== "รายการนี้ถูกลบแล้ว");
             } else {
               filteredByCategory = filteredProducts.filter((product) => product.category_id === category.category_id && product.status !== "รายการนี้ถูกลบแล้ว");
             }
