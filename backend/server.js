@@ -40,7 +40,7 @@ app.get("/products", (req, res) => {
 
 // ดึงข้อมูล category
 app.get("/categories", (req, res) => {
-  db.query("SELECT * FROM categories", (err, results) => {
+  db.query("SELECT * FROM categories WHERE status = 1", (err, results) => {
     if (err) {
       res.status(500).send(err);
     } else {
@@ -57,13 +57,20 @@ app.post("/categories", (req, res) => {
   });
 });
 
-app.delete("/categories/:id", (req, res) => {
+app.put("/delete-categories/:id", (req, res) => {
   const { id } = req.params;
-  db.query("DELETE FROM categories WHERE category_id = ?", [id], (err, result) => {
+  db.query("UPDATE categories SET status = 0 WHERE category_id = ?", [id], (err, result) => {
     if (err) return res.status(500).send(err);
     res.json({ message: "Category deleted" });
   });
 });
+// app.delete("/categories/:id", (req, res) => {
+//   const { id } = req.params;
+//   db.query("DELETE FROM categories WHERE category_id = ?", [id], (err, result) => {
+//     if (err) return res.status(500).send(err);
+//     res.json({ message: "Category deleted" });
+//   });
+// });
 
 app.put("/categories/:id", (req, res) => {
   const { name } = req.body;
@@ -1553,7 +1560,7 @@ app.post("/return-detail", verifyToken, (req, res) => {
               // อัปเดตสถานะการคืนของ
               var total_return = good_qty + damaged_qty + lost_qty;
               var total_product = good_qty + damaged_qty;
-              if (total_return === qty) {
+              if (good_qty === qty) {
                 const updatesql = `
                 UPDATE borrow_request_status
                 SET status_name = 'คืนของแล้ว'
@@ -1569,7 +1576,7 @@ app.post("/return-detail", verifyToken, (req, res) => {
 
                   db.query(
                     "UPDATE product SET quantity = quantity + ? , status = ? WHERE product_id = ?",
-                    [total_product, "พร้อมใช้งาน", product_id],
+                    [good_qty, "พร้อมใช้งาน", product_id],
                     (err, results_status) => {
                       if (err) {
                         res.status(500).send(err);

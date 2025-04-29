@@ -137,8 +137,9 @@ const Navbar = () => {
               sessionStorage.setItem("fromNotification", "true");
               navigate("/History");
             } else if (result.isDenied) {
-              const snoozeUntil = Date.now() + 30 * 60 * 1000;
-              setSnoozeTime(snoozeUntil);
+              // const snoozeUntil = Date.now() + 30 * 60 * 1000;
+              setSnoozeTime(Date.now() + 60000);
+              // setSnoozeTime(snoozeUntil);
               sessionStorage.setItem('notificationSnoozeTime', snoozeUntil);
             } else if (result.isDismissed) {
               sessionStorage.setItem('notificationClosed', 'true');
@@ -336,7 +337,7 @@ const Navbar = () => {
                   className={`nav-link ${getLinkClass("/Approve")}`}
                   to="/Approve"
                 >
-                  อนุมัติคำขอ
+                  อนุมัติสิทธิ์
                 </Link>
               </li>
               <li className="nav-item">
@@ -460,7 +461,7 @@ const Navbar = () => {
                   className={`nav-link ${getLinkClass("/Approve")}`}
                   to="/Approve"
                 >
-                  อนุมัติคำขอ
+                  อนุมัติสิทธิ์
                 </Link>
               </li>
               <li className="nav-item">

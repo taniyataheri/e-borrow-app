@@ -125,7 +125,7 @@ function CancelHistory() {
       <Container className="py-4" style={{ backgroundColor: "#F5F5F5", minHeight: "100vh", marginTop: "80px" }}>
         <Card className="p-4 w-100">
           <h4 className="text-center mb-4" style={{ color: "#2e7d32" }}>
-            รายการคำขออนมุมัติสิทธิ์เข้าใช้งาน
+            รายการคำขอธิ์เข้าใช้งาน
           </h4>
 
           {/* 🔍 Search Bar ชิดซ้าย */}

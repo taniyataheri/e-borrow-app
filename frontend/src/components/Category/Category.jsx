@@ -72,7 +72,7 @@ function Category() {
   
     if (confirm.isConfirmed) {
       try {
-        await axios.delete(`http://localhost:3001/categories/${id}`);
+        await axios.put(`http://localhost:3001/delete-categories/${id}`);
         fetchCategories(); // รีเฟรชรายการ
         Swal.fire("ลบแล้ว!", "ประเภทถูกลบเรียบร้อย", "success");
       } catch (err) {
@@ -96,7 +96,7 @@ function Category() {
         <Card>
           <Card.Body>
             <h4 className="text-center mb-3" style={{ color: "#2e7d32" }}>
-              จัดการประเภทผลิตภัณฑ์
+              จัดการประเภททรัพย์สิน
             </h4>
             <div className="d-flex align-items-center flex-wrap gap-3 mb-3">
               <Form.Group controlId="search" style={{ maxWidth: "400px" }}>
@@ -121,15 +121,15 @@ function Category() {
             <Table striped bordered hover responsive>
               <thead>
                 <tr>
-                  <th>category_id</th>
-                  <th>name</th>
+                  <th>ลำดับ</th>
+                  <th>ประเภททรัพย์สิน</th>
                   <th>จัดการ</th>
                 </tr>
               </thead>
               <tbody>
-                {categories.map((cat) => (
+                {categories.map((cat, index) => (
                   <tr key={cat.category_id}>
-                    <td>{cat.category_id}</td>
+                    <td>{index + 1}</td>
                     <td>{cat.name}</td>
                     <td>
                       <Button variant="warning" onClick={() => editCategory(cat)}>
