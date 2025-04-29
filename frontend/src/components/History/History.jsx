@@ -867,6 +867,21 @@ const handleCloseModalReturn = () => {
                           )} */}
                         </td>
                       )}
+                      {role === 2 && (
+                        <td>
+                          {r.status_name === "รอการอนุมัติ" && (
+                            <>
+                              <Button
+                                variant="outline-danger"
+                                className="w-100 my-1"
+                                onClick={() => handleOpenCancelModal(r)} // ✅ เรียกฟังก์ชันนี้แทน
+                              >
+                                ยกเลิก
+                              </Button>
+                            </>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   ))}
               </tbody>

@@ -126,7 +126,7 @@ function Home() {
 
   const renderSizeOptions = (category_id) => {
     category_id = +category_id;
-    console.log(category_id);
+    // console.log(category_id);
     if (!category_id) {
       return <option value="">กรุณาเลือกประเภทก่อน</option>;
     }
@@ -295,25 +295,25 @@ function Home() {
         // ดึงค่าจาก sessionStorage
         const lastNotifiedCount = sessionStorage.getItem("notifiedCount");
 
-        if (user.role === 1) {
-          if (pendingBorrows.length > 0 && pendingBorrows.length !== Number(lastNotifiedCount)) {
-            // อัปเดตค่าใหม่ใน sessionStorage
-            sessionStorage.setItem("notifiedCount", pendingBorrows.length);
+        // if (user.role === 1) {
+        //   if (pendingBorrows.length > 0 && pendingBorrows.length !== Number(lastNotifiedCount)) {
+        //     // อัปเดตค่าใหม่ใน sessionStorage
+        //     sessionStorage.setItem("notifiedCount", pendingBorrows.length);
 
-            Swal.fire({
-              icon: "info",
-              title: "แจ้งเตือน",
-              html: `คุณมี <strong>${pendingBorrows.length}</strong> รายการรออนุมัติ`,
-              confirmButtonText: "ไปยังหน้ารายการคำขอ",
-              confirmButtonColor: "#2e7d32",
-            }).then((result) => {
-              if (result.isConfirmed) {
-                sessionStorage.setItem("fromNotification", "true");
-                navigate("/History");
-              }
-            });
-          }
-        }
+        //     Swal.fire({
+        //       icon: "info",
+        //       title: "แจ้งเตือน",
+        //       html: `คุณมี <strong>${pendingBorrows.length}</strong> รายการรออนุมัติ`,
+        //       confirmButtonText: "ไปยังหน้ารายการคำขอ",
+        //       confirmButtonColor: "#2e7d32",
+        //     }).then((result) => {
+        //       if (result.isConfirmed) {
+        //         sessionStorage.setItem("fromNotification", "true");
+        //         navigate("/History");
+        //       }
+        //     });
+        //   }
+        // }
       });
   };
 
@@ -695,6 +695,28 @@ function Home() {
                   เพิ่มทรัพย์สิน
                 </Button>
               )}
+              {role === 1 && (
+                <Button
+                  className="d-flex align-items-center gap-2"
+                  style={{
+                    backgroundColor: "#2e7d32",
+                    border: "none",
+                    color: "white",
+                    padding: "10px 20px",
+                    borderRadius: "8px",
+                    fontWeight: "500",
+                    fontSize: "16px",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                    transition: "0.3s",
+                  }}
+                  onClick={() => navigate("/Category")}
+                  onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#27682a")}
+                  onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#2e7d32")}
+                >
+                  <i className="bi bi-plus-circle" style={{ fontSize: "20px" }}></i>
+                  เพิ่มประเภททรัพย์สิน
+                </Button>
+              )}
             </div>
 
             {/* คอลัมน์ขวา: ข้อมูลบัญชีผู้ใช้ */}
@@ -718,7 +740,7 @@ function Home() {
             const currentPage = currentPageByCategory[category.category_id] || 1;
             const startIndex = (currentPage - 1) * itemsPerPage;
             const paginatedProducts = filteredByCategory.slice(startIndex, startIndex + itemsPerPage);
-            console.log("filteredByCategory:", filteredByCategory);
+            // console.log("filteredByCategory:", filteredByCategory);
             return (
               <div key={category.category_id} className="mt-4 mx-4">
                 <div className="category-header">

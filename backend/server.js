@@ -49,6 +49,30 @@ app.get("/categories", (req, res) => {
   });
 });
 
+app.post("/categories", (req, res) => {
+  const { name } = req.body;
+  db.query("INSERT INTO categories (name) VALUES (?)", [name], (err, result) => {
+    if (err) return res.status(500).send(err);
+    res.status(201).json({ message: "Category added", id: result.insertId });
+  });
+});
+
+app.delete("/categories/:id", (req, res) => {
+  const { id } = req.params;
+  db.query("DELETE FROM categories WHERE category_id = ?", [id], (err, result) => {
+    if (err) return res.status(500).send(err);
+    res.json({ message: "Category deleted" });
+  });
+});
+
+app.put("/categories/:id", (req, res) => {
+  const { name } = req.body;
+  const { id } = req.params;
+  db.query("UPDATE categories SET name = ? WHERE category_id = ?", [name, id], (err, result) => {
+    if (err) return res.status(500).send(err);
+    res.send("Updated successfully");
+  });
+});
 app.get("/reasons", (req, res) => {
   db.query("SELECT * FROM `reasons`", (err, results) => {
     if (err) {

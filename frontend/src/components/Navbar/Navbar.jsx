@@ -22,6 +22,9 @@ const Navbar = () => {
   const auth = useContext(AuthContext);
   const { user, token , logout } = auth;
   const [role, setRole] = useState(null);
+  const [snoozeTime, setSnoozeTime] = useState(null);
+  const [isClosed, setIsClosed] = useState(false);
+  const [isLoadingStorage, setIsLoadingStorage] = useState(true);
   
   useEffect(() => {
     try {
@@ -31,55 +34,165 @@ const Navbar = () => {
     }
   }, [auth]);
 
-  useEffect(() => {
-    const fetchBorrow = () => {
-      // console.log("Fetching borrow data...");
-      // console.log("role",user.role);
-      if (user && user.role === 1) {
-        axios.get("http://localhost:3001/borrow", {
-          headers: { Authorization: token }
-        })
-        .then((response) => {
-          const pendingBorrows = response.data.filter((item) => item.status_name === "รอการอนุมัติ");
-          console.log("รายการรอแสดง", pendingBorrows.length);
+  // useEffect(() => {
+  //   const fetchBorrow = () => {
+  //     // console.log("Fetching borrow data...");
+  //     // console.log("role",user.role);
+  //     if (user && user.role === 1) {
+  //       axios.get("http://localhost:3001/borrow", {
+  //         headers: { Authorization: token }
+  //       })
+  //       .then((response) => {
+  //         const pendingBorrows = response.data.filter((item) => item.status_name === "รอการอนุมัติ");
+  //         console.log("รายการรอแสดง", pendingBorrows.length);
       
-          if (pendingBorrows.length > 0 && location.pathname !== "/History") {
-            sessionStorage.setItem("notifiedCount", pendingBorrows.length);
-            Swal.fire({
-              icon: "info",
-              title: "แจ้งเตือน",
-              html: `คุณมี <strong>${pendingBorrows.length}</strong> รายการรออนุมัติ`,
-              confirmButtonText: "ไปยังหน้ารายการคำขอ",
-              confirmButtonColor: "#2e7d32",
-            }).then((result) => {
-              if (result.isConfirmed) {
-                sessionStorage.setItem("fromNotification", "true");
-                navigate("/History");
-              }
-            });
-          }
-        })
-        .catch((error) => {
-          console.error("Fetch borrow error:", error);
-          if (error.response && error.response.status === 401) {
-            Swal.fire({
-              icon: "error",
-              title: "หมดเวลาเข้าสู่ระบบ",
-              text: "กรุณาเข้าสู่ระบบใหม่",
-              confirmButtonText: "ไปหน้า Login"
-            }).then(() => {
-              sessionStorage.clear();
-              navigate("/");
-            });
-          }
-        });
-      }
-    };
-    fetchBorrow();
-    const intervalId = setInterval(fetchBorrow, 300000);
-    return () => clearInterval(intervalId);
-  }, []);
+  //         if (pendingBorrows.length > 0 && location.pathname !== "/History") {
+  //           sessionStorage.setItem("notifiedCount", pendingBorrows.length);
+  //           Swal.fire({
+  //             icon: "info",
+  //             title: "แจ้งเตือน",
+  //             html: `คุณมี <strong>${pendingBorrows.length}</strong> รายการรออนุมัติ`,
+  //             confirmButtonText: "ไปยังหน้ารายการคำขอ",
+  //             confirmButtonColor: "#2e7d32",
+  //             denyButtonText: "แจ้งเตือนฉันใหม่ภายหลัง",
+  //           }).then((result) => {
 
+  //             if (result.isConfirmed) {
+  //               sessionStorage.setItem("fromNotification", "true");
+  //               navigate("/History");
+  //               // sessionStorage.setItem('notificationClosed', 'true');
+  //               // setIsClosed(true);
+  //             } else if (result.isDenied) {
+  //               const snoozeUntil = Date.now() + 30 * 60 * 1000;
+  //               setSnoozeTime(snoozeUntil);
+  //               sessionStorage.setItem('notificationSnoozeTime', snoozeUntil);
+  //             }
+  //           });
+  //         }
+  //       })
+  //       .catch((error) => {
+  //         console.error("Fetch borrow error:", error);
+  //         if (error.response && error.response.status === 401) {
+  //           Swal.fire({
+  //             icon: "error",
+  //             title: "หมดเวลาเข้าสู่ระบบ",
+  //             text: "กรุณาเข้าสู่ระบบใหม่",
+  //             confirmButtonText: "ไปหน้า Login",
+  //           }).then(() => {
+  //             sessionStorage.clear();
+  //             navigate("/");
+  //           });
+  //         }
+  //       });
+  //     }
+  //   };
+  //   fetchBorrow();
+  //   const intervalId = setInterval(fetchBorrow, 300000);
+  //   return () => clearInterval(intervalId);
+  // }, []);
+  
+  
+  // แจ้งเตือน
+  useEffect(() => {
+    const closedStatus = sessionStorage.getItem('notificationClosed');
+    const savedSnoozeTime = sessionStorage.getItem('notificationSnoozeTime');
+
+    if (closedStatus) {
+      setIsClosed(true);
+    }
+
+    if (savedSnoozeTime) {
+      setSnoozeTime(Number(savedSnoozeTime));
+    }
+
+    setIsLoadingStorage(false); // ✅ โหลดเสร็จแล้ว
+  }, []);
+  // console.log("role", role);
+  const showNotification = () => {
+    // console.log("แจ้งเตือน");
+    // console.log("role:", user?.role);
+  
+    if (user?.role === 1) {
+      axios.get("http://localhost:3001/borrow", {
+        headers: { Authorization: token }
+      })
+      .then((response) => {
+        const pendingBorrows = response.data.filter((item) => item.status_name === "รอการอนุมัติ");
+  
+        if (pendingBorrows.length > 0 && location.pathname !== "/History") {
+          sessionStorage.setItem("notifiedCount", pendingBorrows.length);
+          Swal.fire({
+            icon: "info",
+            title: "แจ้งเตือน",
+            html: `คุณมี <strong>${pendingBorrows.length}</strong> รายการรออนุมัติ`,
+            confirmButtonText: "ดูรายการคำขอ",
+            confirmButtonColor: "#2e7d32",
+            denyButtonText: "แจ้งเตือนฉันใหม่ภายหลัง 30นาที",
+            cancelButtonText: "ปิดการแจ้งเตือนจะไม่แจ้งเตือนอีกจนกว่าจะเข้าสู่ระบบใหม่",
+            showCancelButton: true,
+            showDenyButton: true,
+            allowOutsideClick: false,
+          }).then((result) => {
+            if (result.isConfirmed) {
+              sessionStorage.setItem("fromNotification", "true");
+              navigate("/History");
+            } else if (result.isDenied) {
+              const snoozeUntil = Date.now() + 30 * 60 * 1000;
+              setSnoozeTime(snoozeUntil);
+              sessionStorage.setItem('notificationSnoozeTime', snoozeUntil);
+            } else if (result.isDismissed) {
+              sessionStorage.setItem('notificationClosed', 'true');
+              setIsClosed(true);
+            }
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("Fetch borrow error:", error);
+        if (error.response && error.response.status === 401) {
+          Swal.fire({
+            icon: "error",
+            title: "หมดเวลาเข้าสู่ระบบ",
+            text: "กรุณาเข้าสู่ระบบใหม่",
+            confirmButtonText: "ไปหน้า Login",
+          }).then(() => {
+            sessionStorage.clear();
+            navigate("/");
+          });
+        }
+      });
+    }
+  };
+
+  // ✅ อย่าแสดงแจ้งเตือนจนกว่าจะโหลดค่าจาก storage เสร็จ
+  useEffect(() => {
+    if (!isLoadingStorage && !isClosed && !snoozeTime && user) {
+      showNotification();
+    }
+  }, [isClosed, snoozeTime, isLoadingStorage, user]);
+
+  // ตรวจสอบการหมดเวลา snooze
+  useEffect(() => {
+    if (snoozeTime) {
+      const now = Date.now();
+
+      if (snoozeTime <= now) {
+        setSnoozeTime(null);
+        sessionStorage.removeItem('notificationSnoozeTime');
+        showNotification();
+      } else {
+        const timeout = setTimeout(() => {
+          setSnoozeTime(null);
+          sessionStorage.removeItem('notificationSnoozeTime');
+          showNotification();
+        }, snoozeTime - now);
+
+        return () => clearTimeout(timeout);
+      }
+    }
+  }, [snoozeTime]);
+  //----------------------------------------------------------------------------------------
+  
   const handleLogout = () => {
     Swal.fire({
       title: "คุณแน่ใจหรือไม่?",
@@ -92,6 +205,7 @@ const Navbar = () => {
       if (result.isConfirmed) {
         logout();
         navigate("/");
+        sessionStorage.clear();
       }
     });
   };

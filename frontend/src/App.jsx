@@ -10,7 +10,7 @@ import ReturnHistory from "./components/ReturnHistory";
 import CancelledRequests from "./components/CancelledRequests";
 import Approve from './components/Approve/ApproveUser';
 import ForgotPasswird from './components/Forgot/Forgotpassword';
-
+import Category from './components/Category/Category';
 
 
 function App() {
@@ -28,6 +28,7 @@ function App() {
           <Route path="/cancelled-requests" element={<CancelledRequests/>}></Route>
           <Route path="/Approve" element={<Approve/>}></Route>
           <Route path="/ForgotPassword" element={<ForgotPasswird />} />
+          <Route path="/Category" element={<Category />} />
         </Routes>
       </Router>
   )
