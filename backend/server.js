@@ -1472,6 +1472,157 @@ LEFT JOIN return_detail rd ON br.request_id = rd.request_id
   });
 });
 
+// app.post("/return-detail", verifyToken, (req, res) => {
+//   const {
+//     request_id,
+//     good_qty,
+//     damaged_qty,
+//     lost_qty,
+//     fine_amount,
+//     note,
+//     returned_by,
+//     received_by,
+//     qty,
+//     product_id,
+//   } = req.body;
+
+//   const checksql = `
+//       SELECT member_id, first_name, last_name, full_name
+//       FROM members
+//       WHERE 
+//         full_name LIKE ? OR
+//         first_name LIKE ? OR
+//         last_name LIKE ?
+//       LIMIT 1
+//     `;
+
+//   const returnedSearch = `%${returned_by}%`;
+//   const receivedSearch = `%${received_by}%`;
+
+//   // ค้นหา returned_by
+//   db.query(
+//     checksql,
+//     [returnedSearch, returnedSearch, returnedSearch],
+//     (err, result1) => {
+//       if (err || result1.length === 0) {
+//         console.error("ค้นหา returned_by ไม่สำเร็จ:", err);
+//         console.error("returned_by:", returnedSearch);
+//         console.error("checksql result:", checksql);
+//         return res.status(400).send("ไม่พบผู้ส่งคืน");
+//       }
+
+//       const returned_id = result1[0].member_id;
+
+//       // ค้นหา received_by
+//       db.query(
+//         checksql,
+//         [receivedSearch, receivedSearch, receivedSearch],
+//         (err2, result2) => {
+//           if (err2 || result2.length === 0) {
+//             return res.status(400).send("ไม่พบผู้รับของคืน");
+//           }
+
+//           const received_id = result2[0].member_id;
+
+//           const insertsql = `
+//             INSERT INTO return_detail (
+//               request_id,
+//               returned_good,
+//               returned_damaged,
+//               returned_lost,
+//               fine_amount,
+//               note,
+//               received_by,
+//               returned_by,
+//               return_date
+//             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
+//           `;
+
+//           db.query(
+//             insertsql,
+//             [
+//               request_id,
+//               good_qty,
+//               damaged_qty,
+//               lost_qty,
+//               fine_amount,
+//               note,
+//               returned_id,
+//               received_id,
+//             ],
+//             (err3, result3) => {
+//               console.error("Insert return_detail error:", err3);
+//               if (err3) {
+//                 return res.status(500).send("เกิดข้อผิดพลาดในการบันทึกการคืนของ");
+//               }
+//               // อัปเดตสถานะการคืนของ
+//               var total_return = good_qty + damaged_qty + lost_qty;
+//               var total_product = good_qty + damaged_qty;
+//               if (good_qty === qty) {
+//                 const updatesql = `
+//                 UPDATE borrow_request_status
+//                 SET status_name = 'คืนของแล้ว'
+//                 WHERE request_id = ?
+//               `;
+//                 db.query(updatesql, [request_id], (err4, result4) => {
+//                   // console.log(result4);
+//                   if (err4) {
+//                     return res
+//                       .status(500)
+//                       .send("เกิดข้อผิดพลาดในการอัปเดตสถานะ");
+//                   }
+
+//                   db.query(
+//                     "UPDATE product SET quantity = quantity + ? , status = ? WHERE product_id = ?",
+//                     [good_qty, "พร้อมใช้งาน", product_id],
+//                     (err, results_status) => {
+//                       if (err) {
+//                         res.status(500).send(err);
+//                       }
+//                     }
+//                   );
+//                   return res
+//                     .status(200)
+//                     .send("บันทึกการคืนของและอัปเดตสถานะเรียบร้อยแล้ว");
+//                 });
+//               } else if (total_return < qty) {
+//                 const updatesql = `
+//                 UPDATE borrow_request_status
+//                 SET status_name = 'คืนไม่ครบ'
+//                 WHERE request_id = ?
+//               `;
+//                 db.query(updatesql, [request_id], (err4, result4) => {
+//                   // console.log(result4);
+//                   if (err4) {
+//                     return res
+//                       .status(500)
+//                       .send("เกิดข้อผิดพลาดในการอัปเดตสถานะ");
+//                   }
+//                   db.query(
+//                     "UPDATE product SET quantity = quantity + ? , status = ? WHERE product_id = ?",
+//                     [total_product, "พร้อมใช้งาน", product_id],
+//                     (err, results_status) => {
+//                       if (err) {
+//                         res.status(500).send(err);
+//                       }
+//                     }
+//                   );
+//                   return res
+//                     .status(200)
+//                     .send("บันทึกการคืนของและอัปเดตสถานะเรียบร้อยแล้ว");
+//                 });
+//               }
+//             }
+//           );
+//         }
+//       );
+//     }
+//   );
+// });
+
+// ✅ ส่วนเสริมใหม่ใน server.js (Backend) สำหรับ "บันทึกการซ่อม"
+
+// แก้ใหม่
 app.post("/return-detail", verifyToken, (req, res) => {
   const {
     request_id,
@@ -1525,18 +1676,18 @@ app.post("/return-detail", verifyToken, (req, res) => {
           const received_id = result2[0].member_id;
 
           const insertsql = `
-        INSERT INTO return_detail (
-          request_id,
-          returned_good,
-          returned_damaged,
-          returned_lost,
-          fine_amount,
-          note,
-          received_by,
-          returned_by,
-          return_date
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
-      `;
+            INSERT INTO return_detail (
+              request_id,
+              returned_good,
+              returned_damaged,
+              returned_lost,
+              fine_amount,
+              note,
+              received_by,
+              returned_by,
+              return_date
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
+          `;
 
           db.query(
             insertsql,
@@ -1559,60 +1710,117 @@ app.post("/return-detail", verifyToken, (req, res) => {
               }
               // อัปเดตสถานะการคืนของ
               var total_return = good_qty + damaged_qty + lost_qty;
-              var total_product = good_qty + damaged_qty;
-              if (good_qty === qty) {
-                const updatesql = `
-                UPDATE borrow_request_status
-                SET status_name = 'คืนของแล้ว'
-                WHERE request_id = ?
-              `;
-                db.query(updatesql, [request_id], (err4, result4) => {
-                  // console.log(result4);
-                  if (err4) {
-                    return res
-                      .status(500)
-                      .send("เกิดข้อผิดพลาดในการอัปเดตสถานะ");
-                  }
+              var total_product = good_qty;
+              if (total_return === qty) {
+                if(damaged_qty > 0){
+                  const updatesql = `
+                    UPDATE borrow_request_status
+                    SET status_name = 'คืนของแล้ว/มีของชำรุด'
+                    WHERE request_id = ?
+                  `;
+                  db.query(updatesql, [request_id], (err4, result4) => {
+                    // console.log(result4);
+                    if (err4) {
+                      return res
+                        .status(500)
+                        .send("เกิดข้อผิดพลาดในการอัปเดตสถานะ");
+                    }
 
-                  db.query(
-                    "UPDATE product SET quantity = quantity + ? , status = ? WHERE product_id = ?",
-                    [good_qty, "พร้อมใช้งาน", product_id],
-                    (err, results_status) => {
-                      if (err) {
-                        res.status(500).send(err);
+                    db.query(
+                      "UPDATE product SET quantity = quantity + ? , status = ? WHERE product_id = ?",
+                      [total_product, "พร้อมใช้งาน", product_id],
+                      (err, results_status) => {
+                        if (err) {
+                          res.status(500).send(err);
+                        }
                       }
-                    }
-                  );
-                  return res
-                    .status(200)
-                    .send("บันทึกการคืนของและอัปเดตสถานะเรียบร้อยแล้ว");
-                });
-              } else if (total_return < qty) {
-                const updatesql = `
-                UPDATE borrow_request_status
-                SET status_name = 'คืนไม่ครบ'
-                WHERE request_id = ?
-              `;
-                db.query(updatesql, [request_id], (err4, result4) => {
-                  // console.log(result4);
-                  if (err4) {
+                    );
                     return res
-                      .status(500)
-                      .send("เกิดข้อผิดพลาดในการอัปเดตสถานะ");
-                  }
-                  db.query(
-                    "UPDATE product SET quantity = quantity + ? , status = ? WHERE product_id = ?",
-                    [total_product, "พร้อมใช้งาน", product_id],
-                    (err, results_status) => {
-                      if (err) {
-                        res.status(500).send(err);
-                      }
+                      .status(200)
+                      .send("บันทึกการคืนของและอัปเดตสถานะเรียบร้อยแล้ว");
+                  });
+                }else{
+                  const updatesql = `
+                    UPDATE borrow_request_status
+                    SET status_name = 'คืนของแล้ว'
+                    WHERE request_id = ?
+                  `;
+                  db.query(updatesql, [request_id], (err4, result4) => {
+                    // console.log(result4);
+                    if (err4) {
+                      return res
+                        .status(500)
+                        .send("เกิดข้อผิดพลาดในการอัปเดตสถานะ");
                     }
-                  );
-                  return res
-                    .status(200)
-                    .send("บันทึกการคืนของและอัปเดตสถานะเรียบร้อยแล้ว");
-                });
+
+                    db.query(
+                      "UPDATE product SET quantity = quantity + ? , status = ? WHERE product_id = ?",
+                      [total_product, "พร้อมใช้งาน", product_id],
+                      (err, results_status) => {
+                        if (err) {
+                          res.status(500).send(err);
+                        }
+                      }
+                    );
+                    return res
+                      .status(200)
+                      .send("บันทึกการคืนของและอัปเดตสถานะเรียบร้อยแล้ว");
+                  });
+                }
+              } else if (total_return < qty) {
+                if(damaged_qty > 0){
+                  const updatesql = `
+                    UPDATE borrow_request_status
+                    SET status_name = 'คืนไม่ครบ/มีของชำรุด'
+                    WHERE request_id = ?
+                  `;
+                  db.query(updatesql, [request_id], (err4, result4) => {
+                    // console.log(result4);
+                    if (err4) {
+                      return res
+                        .status(500)
+                        .send("เกิดข้อผิดพลาดในการอัปเดตสถานะ");
+                    }
+                    db.query(
+                      "UPDATE product SET quantity = quantity + ? , status = ? WHERE product_id = ?",
+                      [total_product, "พร้อมใช้งาน", product_id],
+                      (err, results_status) => {
+                        if (err) {
+                          res.status(500).send(err);
+                        }
+                      }
+                    );
+                    return res
+                      .status(200)
+                      .send("บันทึกการคืนของและอัปเดตสถานะเรียบร้อยแล้ว");
+                  });
+                }else{
+                  const updatesql = `
+                    UPDATE borrow_request_status
+                    SET status_name = 'คืนไม่ครบ'
+                    WHERE request_id = ?
+                  `;
+                  db.query(updatesql, [request_id], (err4, result4) => {
+                    // console.log(result4);
+                    if (err4) {
+                      return res
+                        .status(500)
+                        .send("เกิดข้อผิดพลาดในการอัปเดตสถานะ");
+                    }
+                    db.query(
+                      "UPDATE product SET quantity = quantity + ? , status = ? WHERE product_id = ?",
+                      [total_product, "พร้อมใช้งาน", product_id],
+                      (err, results_status) => {
+                        if (err) {
+                          res.status(500).send(err);
+                        }
+                      }
+                    );
+                    return res
+                      .status(200)
+                      .send("บันทึกการคืนของและอัปเดตสถานะเรียบร้อยแล้ว");
+                  });
+                }
               }
             }
           );
@@ -1622,7 +1830,6 @@ app.post("/return-detail", verifyToken, (req, res) => {
   );
 });
 
-// ✅ ส่วนเสริมใหม่ใน server.js (Backend) สำหรับ "บันทึกการซ่อม"
 app.use(cors());
 app.use(express.json());
 
@@ -1787,3 +1994,70 @@ app.put("/users/approve/:id", (req, res) => {
     }
   );
 });
+
+app.put("/repair/:id", (req, res) => {
+  const { id } = req.params;
+  const { repair_note, repaired_quantity, product_id } = req.body;
+
+  db.beginTransaction((err) => {
+    if (err) {
+      console.error("Begin transaction error:", err);
+      return res.status(500).json({ message: "เริ่มธุรกรรมล้มเหลว" });
+    }
+
+    const updateReturnDetailQuery = `
+      UPDATE return_detail
+      SET repair_note = ?, repaired_quantity = ?,
+      returned_damaged = returned_damaged - ?
+      WHERE return_id = ?
+    `;
+
+    db.query(updateReturnDetailQuery, [repair_note, repaired_quantity , repaired_quantity, id], (err, result1) => {
+      if (err) {
+        return db.rollback(() => {
+          console.error("Error updating return_detail:", err);
+          res.status(500).json({ message: "อัปเดต return_detail ล้มเหลว" });
+        });
+      }
+
+      if (result1.affectedRows === 0) {
+        return db.rollback(() => {
+          res.status(404).json({ message: "ไม่พบรายการที่ต้องการอัปเดต" });
+        });
+      }
+
+      const updateProductQuery = `
+        UPDATE product
+        SET quantity = quantity + ?
+        WHERE product_id = ?
+      `;
+
+      db.query(updateProductQuery, [repaired_quantity, product_id], (err, result2) => {
+        if (err) {
+          return db.rollback(() => {
+            console.error("Error updating product:", err);
+            res.status(500).json({ message: "อัปเดต product ล้มเหลว" });
+          });
+        }
+
+        if (result2.affectedRows === 0) {
+          return db.rollback(() => {
+            res.status(404).json({ message: "ไม่พบสินค้าเพื่ออัปเดตสถานะ" });
+          });
+        }
+
+        db.commit((err) => {
+          if (err) {
+            return db.rollback(() => {
+              console.error("Commit error:", err);
+              res.status(500).json({ message: "ยืนยันล้มเหลว" });
+            });
+          }
+
+          res.json({ message: "อัปเดตข้อมูลเรียบร้อยแล้ว" });
+        });
+      });
+    });
+  });
+});
+

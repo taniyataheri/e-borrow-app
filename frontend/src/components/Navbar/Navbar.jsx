@@ -318,6 +318,14 @@ const Navbar = () => {
               </li>
               <li className="nav-item">
                 <Link
+                  className={`nav-link ${getLinkClass("/Repair")}`}
+                  to="/Repair"
+                >
+                  รายการชำรุด
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
                   className={`nav-link ${getLinkClass("/return-history")}`}
                   to="/return-history"
                 >
@@ -438,6 +446,14 @@ const Navbar = () => {
                   to="/History"
                 >
                   รายการคำขอ
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link
+                  className={`nav-link ${getLinkClass("/Repair")}`}
+                  to="/Repair"
+                >
+                  รายการชำรุด
                 </Link>
               </li>
               <li className="nav-item">

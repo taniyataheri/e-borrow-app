@@ -45,7 +45,7 @@ function ReturnHistory() {
 
   const filteredData = Array.isArray(returnList)
     ? returnList.filter((r) => {
-        console.log("return:", r);
+        // console.log("return:", r);
         const totalReturned =
           r.returned_good + r.returned_damaged + r.returned_lost;
         const total = r.quantity;

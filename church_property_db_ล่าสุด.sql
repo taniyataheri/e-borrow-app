@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 29, 2025 at 06:34 PM
+-- Generation Time: Apr 30, 2025 at 10:15 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.3.20
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -39,16 +39,6 @@ CREATE TABLE `borrow_request` (
   `note` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `borrow_request`
---
-
-INSERT INTO `borrow_request` (`request_id`, `member_id`, `product_id`, `quantity`, `request_date`, `due_return_date`, `receive_date`, `return_date`, `note`) VALUES
-(1, 'M004', 1, 2, '2025-04-29', '2025-05-06', '2025-04-29', NULL, 'ยืม'),
-(2, 'M004', 7, 1, '2025-04-29', '2025-05-06', NULL, NULL, 'ยืม'),
-(3, 'M002', 7, 1, '2025-04-29', '2025-05-06', '2025-04-29', NULL, 'ยืมนะ'),
-(4, 'M004', 4, 2, '2025-04-29', '2025-05-06', '2025-04-29', NULL, 'หอหอหอ');
-
 -- --------------------------------------------------------
 
 --
@@ -63,16 +53,6 @@ CREATE TABLE `borrow_request_status` (
   `canceled_by` varchar(255) DEFAULT NULL,
   `updated_date` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `borrow_request_status`
---
-
-INSERT INTO `borrow_request_status` (`status_id`, `request_id`, `status_name`, `cancel_reason`, `canceled_by`, `updated_date`) VALUES
-(1, 1, 'คืนของแล้ว', NULL, NULL, NULL),
-(2, 2, 'ถูกยกเลิก', 'ยืมผิด', 'itthkorn peingern', '2025-04-29'),
-(3, 3, 'คืนของแล้ว', NULL, NULL, NULL),
-(4, 4, 'ผู้ยืมได้รับของแล้ว', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -182,10 +162,10 @@ CREATE TABLE `product` (
 --
 
 INSERT INTO `product` (`product_id`, `name`, `color`, `quantity`, `size`, `price_per_item`, `category_id`, `status`, `image`) VALUES
-(1, 'เหลืองลูกไม้', '', 4, 'M', 350.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/bYV68NzV/yellow-lace-and-jersey-slit-prom-dress-2.webp'),
+(1, 'เหลืองลูกไม้', '', 2, 'M', 350.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/bYV68NzV/yellow-lace-and-jersey-slit-prom-dress-2.webp'),
 (2, 'เดรสโอรส', 'โอรส', 1, 'L', 400.00, 1, 'รายการนี้ถูกลบแล้ว', 'https://i.postimg.cc/K8xQDKQz/iz63bp.jpg'),
 (3, 'เดรสบานเย็น', NULL, 0, NULL, 300.00, 1, 'รายการนี้ถูกลบแล้ว', 'https://i.postimg.cc/xTYLWwmp/images.jpg'),
-(4, 'เดรสชมพูกะปิจีบรอบ', NULL, 0, NULL, 400.00, 1, 'ไม่พร้อมใช้งาน', 'https://i.postimg.cc/sgKFYCYk/th-11134207-7ras9-m1fe1h2a2zebe3.jpg'),
+(4, 'เดรสชมพูกะปิจีบรอบ', NULL, 3, NULL, 400.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/sgKFYCYk/th-11134207-7ras9-m1fe1h2a2zebe3.jpg'),
 (5, 'เดรสเขียวเข้ม', NULL, 6, NULL, 350.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/bJ74yyPt/images-1.jpg'),
 (6, 'มินิเดรสน้ำเงิน', NULL, 4, NULL, 350.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/wTV4Pc1J/c7thdf.jpg'),
 (7, 'เดรสกระโปรงม่วงพาสเทล ผ้าชีฟอง', NULL, 1, NULL, 300.00, 1, 'พร้อมใช้งาน', 'https://i.postimg.cc/7h4XtfDm/th-11134207-7r990-lxaxltcs0x5b71-tn.webp'),
@@ -397,20 +377,14 @@ CREATE TABLE `return_detail` (
   `returned_good` int(11) DEFAULT NULL,
   `returned_damaged` int(11) DEFAULT NULL,
   `returned_lost` int(11) DEFAULT NULL,
+  `repaired_quantity` int(11) DEFAULT NULL,
   `return_date` date DEFAULT NULL,
   `fine_amount` text DEFAULT NULL,
   `received_by` varchar(255) DEFAULT NULL,
   `returned_by` varchar(255) DEFAULT NULL,
-  `note` text DEFAULT NULL
+  `note` text DEFAULT NULL,
+  `repair_note` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `return_detail`
---
-
-INSERT INTO `return_detail` (`return_id`, `request_id`, `returned_good`, `returned_damaged`, `returned_lost`, `return_date`, `fine_amount`, `received_by`, `returned_by`, `note`) VALUES
-(1, 3, 1, 0, 0, '2025-04-29', 'ไม่มีค่าปรับ', 'M002', 'M001', 'คืนของครบและสมบูรณ์'),
-(2, 1, 1, 0, 1, '2025-04-29', 'ค่าของสูญหาย 350 บาท', 'M004', 'M001', 'จ่ายค่าปรับแล้ว');
 
 -- --------------------------------------------------------
 
@@ -534,13 +508,13 @@ ALTER TABLE `sizes`
 -- AUTO_INCREMENT for table `borrow_request`
 --
 ALTER TABLE `borrow_request`
-  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `borrow_request_status`
 --
 ALTER TABLE `borrow_request_status`
-  MODIFY `status_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `status_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `categories`
@@ -564,7 +538,7 @@ ALTER TABLE `product`
 -- AUTO_INCREMENT for table `return_detail`
 --
 ALTER TABLE `return_detail`
-  MODIFY `return_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `return_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `roles`
