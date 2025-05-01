@@ -5,6 +5,7 @@ import Swal from "sweetalert2";
 import { AuthContext } from "../../context/authContext";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../Navbar/Navbar";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const paginate = (items, currentPage, itemsPerPage) => {
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -119,7 +120,7 @@ function Home() {
   // โหลดขนาดจาก API แค่ครั้งเดียว
   useEffect(() => {
     axios
-      .get("http://localhost:3001/product_sizes")
+      .get(`${apiUrl}/product_sizes`)
       .then((res) => setProductSize(res.data))
       .catch((err) => console.error("โหลดขนาดไม่สำเร็จ", err));
   }, []);
@@ -231,7 +232,7 @@ function Home() {
     }
 
     axios
-      .post("http://localhost:3001/products", formData, {
+      .post(`${apiUrl}/products`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then(() => {
@@ -284,7 +285,7 @@ function Home() {
 
   const fetchBorrow = () => {
     axios
-      .get("http://localhost:3001/borrow", {
+      .get(`${apiUrl}/borrow`, {
         headers: {
           Authorization: token, // <--- ส่ง token ที่คุณได้จาก context
         },
@@ -318,19 +319,19 @@ function Home() {
   };
 
   const fetchProducts = () => {
-    axios.get("http://localhost:3001/products").then((response) => {
+    axios.get(`${apiUrl}/products`).then((response) => {
       setProducts(response.data);
     });
-    axios.get("http://localhost:3001/categories").then((response) => {
+    axios.get(`${apiUrl}/categories`).then((response) => {
       setCategories(response.data);
     });
-    axios.get("http://localhost:3001/product_sizes").then((response) => {
+    axios.get(`${apiUrl}/product_sizes`).then((response) => {
       setProductSize(response.data);
     });
   };
 
   const deleteProduct = (id) => {
-    axios.delete(`http://localhost:3001/products/${id}`).then(() => {
+    axios.delete(`${apiUrl}/products/${id}`).then(() => {
       fetchProducts();
     });
   };
@@ -396,7 +397,7 @@ function Home() {
   //   console.log("📦 ข้อมูลที่กำลังจะส่ง:", imageFile);
   //   console.log("📦 ข้อมูลที่กำลังจะส่ง:", formData);
   //   // axios
-  //   //   .put(`http://localhost:3001/products/${id}`, formData, {
+  //   //   .put(``${apiUrl}/products/${id}`, formData, {
   //   //     headers: {
   //   //       "Content-Type": "multipart/form-data",
   //   //     },
@@ -449,7 +450,7 @@ function Home() {
   //   }
 
   //   axios
-  //     .post(`http://localhost:3001/products/update/${id}`, formData, {
+  //     .post(``${apiUrl}/products/update/${id}`, formData, {
   //       headers: { "Content-Type": "multipart/form-data" },
   //     })
   //     .then(() => {
@@ -473,7 +474,7 @@ function Home() {
 
   //   // if(!name || !color || !qta || !size || !price || !category_id || !status || !image || !previewImage) {
   //   //   axios
-  //   //   .put(`http://localhost:3001/products/${id}`, {
+  //   //   .put(``${apiUrl}/products/${id}`, {
   //   //     name,
   //   //     color,
   //   //     qta,
@@ -504,7 +505,7 @@ function Home() {
     formData.append("imageFile", imageFile);
 
     axios
-      .put(`http://localhost:3001/products/${id}`, formData, {
+      .put(`${apiUrl}/products/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       })
       .then(() => {
@@ -542,7 +543,7 @@ function Home() {
     }
 
     axios
-      .post("http://localhost:3001/borrow", formBorrow)
+      .post(`${apiUrl}/borrow`, formBorrow)
       .then(() => {
         setShowBorrow(false); // ปิด Modal
         Swal.fire({
@@ -574,7 +575,7 @@ function Home() {
       return;
     }
 
-    axios.post(`http://localhost:3001/maintenance`, formMaintenance).then(() => {
+    axios.post(`${apiUrl}/maintenance`, formMaintenance).then(() => {
       setShowMaintenance(false);
       Swal.fire({
         icon: "success",

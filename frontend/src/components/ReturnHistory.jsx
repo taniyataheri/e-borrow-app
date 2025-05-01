@@ -4,6 +4,7 @@ import { AuthContext } from "../context/authContext";
 import axios from "axios";
 import { Container, Table, Card } from "react-bootstrap";
 import Swal from "sweetalert2";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 function ReturnHistory() {
   const [returnList, setReturnList] = useState([]);
@@ -18,7 +19,7 @@ function ReturnHistory() {
   // const [unreturned, setUnreturned] = useState([]);
 
   // useEffect(() => {
-  //   axios.get("http://localhost:3001/borrow/unreturned")
+  //   axios.get(`${apiUrl}/borrow/unreturned`)
   //     .then(res => setUnreturned(res.data))
   //     .catch(err => console.error("Error fetching unreturned:", err));
   // }, []);
@@ -31,8 +32,8 @@ function ReturnHistory() {
   const fetchReturnDetail = () => {
     const url =
       user.role === 1
-        ? "http://localhost:3001/return-detail"
-        : `http://localhost:3001/return-detail/user/${user.id}`;
+        ? `${apiUrl}/return-detail`
+        : `${apiUrl}/return-detail/user/${user.id}`;
 
     // console.log("ข้อมูลที่ได้:", url);
     axios
@@ -169,10 +170,13 @@ function ReturnHistory() {
                   <th>สมบูรณ์</th>
                   <th>ชำรุด</th>
                   <th>สูญหาย</th>
+                  {/* <th>จำนวนที่ยืม</th>
+                  <th>จำนวนที่คืน</th> */}
                   <th>ค่าปรับ</th>
                   <th>หมายเหตุ</th>
                   <th>ผู้รับคืน</th>
                   <th>สถานะ</th>
+                  <th>วันที่ยืม</th>
                   <th>วันที่รับคืน</th>
                 </tr>
               </thead>
@@ -180,7 +184,7 @@ function ReturnHistory() {
                 <tbody>
                   {paginatedList.length === 0 ? (
                     <tr>
-                      <td colSpan="12" className="text-center text-muted">
+                      <td colSpan="15" className="text-center text-muted">
                         ไม่พบข้อมูล
                       </td>
                     </tr>
@@ -198,6 +202,7 @@ function ReturnHistory() {
                         <td>{r.note || "-"}</td>
                         <td>{r.returned_by_name || "-"}</td>
                         <td>{r.status_name || "-"}</td>
+                        <td>{formatDDate(r.receive_date)}</td>
                         <td>{formatDDate(r.return_date)}</td>
                       </tr>
                     ))
@@ -209,7 +214,7 @@ function ReturnHistory() {
                 <tbody>
                   {paginatedList.length === 0 ? (
                     <tr>
-                      <td colSpan="12" className="text-center text-muted">
+                      <td colSpan="15" className="text-center text-muted">
                         ไม่พบข้อมูล
                       </td>
                     </tr>
@@ -227,6 +232,7 @@ function ReturnHistory() {
                         <td>{r.note || "-"}</td>
                         <td>{r.returned_by_name || "-"}</td>
                         <td>{r.status_name || "-"}</td>
+                        <td>{formatDDate(r.receive_date)}</td>
                         <td>{formatDDate(r.return_date)}</td>
                       </tr>
                     ))
@@ -238,7 +244,7 @@ function ReturnHistory() {
                 <tbody>
                   {paginatedList.length === 0 ? (
                     <tr>
-                      <td colSpan="12" className="text-center text-muted">
+                      <td colSpan="15" className="text-center text-muted">
                         ไม่พบรายการค้างคืน
                       </td>
                     </tr>
@@ -256,6 +262,7 @@ function ReturnHistory() {
                         <td>{r.note || "-"}</td>
                         <td>{r.returned_by_name || "-"}</td>
                         <td>{r.status_name || "-"}</td>
+                        <td>{formatDDate(r.receive_date)}</td>
                         <td>{formatDDate(r.return_date)}</td>
                       </tr>
                     ))
@@ -267,7 +274,7 @@ function ReturnHistory() {
                 <tbody>
                   {paginatedList.length === 0 ? (
                     <tr>
-                      <td colSpan="12" className="text-center text-muted">
+                      <td colSpan="15" className="text-center text-muted">
                         ไม่พบรายการค้างคืน
                       </td>
                     </tr>
@@ -285,6 +292,7 @@ function ReturnHistory() {
                         <td>{r.note || "-"}</td>
                         <td>{r.returned_by_name || "-"}</td>
                         <td>{r.status_name || "-"}</td>
+                        <td>{formatDDate(r.receive_date)}</td>
                         <td>{formatDDate(r.return_date)}</td>
                       </tr>
                     ))

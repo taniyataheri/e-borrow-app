@@ -6,8 +6,8 @@ import Swal from "sweetalert2";
 import logo from "../../assets/logo.png"; //
 import axios from "axios";
 import "./Navbar.css";
-
 import { AuthContext } from "../../context/authContext";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,7 +39,7 @@ const Navbar = () => {
   //     // console.log("Fetching borrow data...");
   //     // console.log("role",user.role);
   //     if (user && user.role === 1) {
-  //       axios.get("http://localhost:3001/borrow", {
+  //       axios.get(`${process.env.REACT_APP_API_URL}/borrow`, {
   //         headers: { Authorization: token }
   //       })
   //       .then((response) => {
@@ -111,9 +111,8 @@ const Navbar = () => {
   const showNotification = () => {
     // console.log("แจ้งเตือน");
     // console.log("role:", user?.role);
-  
     if (user?.role === 1) {
-      axios.get("http://localhost:3001/borrow", {
+      axios.get(`${apiUrl}/borrow`, {
         headers: { Authorization: token }
       })
       .then((response) => {
@@ -137,9 +136,9 @@ const Navbar = () => {
               sessionStorage.setItem("fromNotification", "true");
               navigate("/History");
             } else if (result.isDenied) {
-              // const snoozeUntil = Date.now() + 30 * 60 * 1000;
-              setSnoozeTime(Date.now() + 60000);
-              // setSnoozeTime(snoozeUntil);
+              const snoozeUntil = Date.now() + 30 * 60 * 1000;
+              // setSnoozeTime(Date.now() + 60000);
+              setSnoozeTime(snoozeUntil);
               sessionStorage.setItem('notificationSnoozeTime', snoozeUntil);
             } else if (result.isDismissed) {
               sessionStorage.setItem('notificationClosed', 'true');

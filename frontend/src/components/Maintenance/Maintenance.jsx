@@ -5,6 +5,7 @@ import Navbar from "../Navbar/Navbar";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FaTools, FaCheckCircle, FaHourglassHalf } from "react-icons/fa";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 function Maintenance() {
   const [history, setHistory] = useState([]);
@@ -26,19 +27,19 @@ function Maintenance() {
   }, [auth]);
 
   const fetchMaintenance = () => {
-    axios.get("http://localhost:3001/maintenance-record").then((response) => {
+    axios.get(`${apiUrl}/maintenance-record`).then((response) => {
       setHistory(response.data);
     });
   };
 
   const updateStatus = (id, status_name) => {
-    axios.put(`http://localhost:3001/maintenance-record/${id}`, { status_name }).then(() => {
+    axios.put(`${apiUrl}/maintenance-record/${id}`, { status_name }).then(() => {
       fetchMaintenance();
     });
   };
 
   const handleSaveRepair = () => {
-    axios.put(`http://localhost:3001/maintenance/update-repair/${selectedRecord.record_id}`, repairData)
+    axios.put(`${apiUrl}/maintenance/update-repair/${selectedRecord.record_id}`, repairData)
       .then(() => {
         setShowModal(false);
         setRepairData({ responsible_person: "", cost: "", repair_date: "" });

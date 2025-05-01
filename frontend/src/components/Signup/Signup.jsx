@@ -5,7 +5,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/authContext";
 import Swal from "sweetalert2";
-import logo from "../../assets/logo.png"; //
+import logo from "../../assets/logo.png";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -65,7 +66,7 @@ const Signup = () => {
 
   const addMember = () => {
     axios
-      .get(`http://localhost:3001/check-duplicate?email=${formData.email}&username=${formData.username}`)
+      .get(`${apiUrl}/check-duplicate?email=${formData.email}&username=${formData.username}`)
       .then((res) => {
         const { emailExists, usernameExists } = res.data;
         if (emailExists || usernameExists) {
@@ -87,7 +88,7 @@ const Signup = () => {
           if (result.isConfirmed) {
             // ✅ ถ้าผู้ใช้กดยืนยัน ค่อยส่ง axios
             axios
-            .post("http://localhost:3001/users", formData)
+            .post(`${apiUrl}/users`, formData)
             .then(() => {
               Swal.fire({
                 icon: "success",

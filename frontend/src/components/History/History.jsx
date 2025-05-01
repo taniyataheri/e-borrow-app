@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
 import { InputGroup } from "react-bootstrap";
 import Swal from "sweetalert2";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 function History() {
   const [history, setHistory] = useState([]);
@@ -61,7 +62,7 @@ function History() {
 
   useEffect(() => {
     if (showReturnModal) {
-      fetch("http://localhost:3001/reasons")
+      fetch(`${apiUrl}/reasons`)
         .then((response) => response.json())
         .then((data) => {
           setReasonOptions(data);
@@ -82,7 +83,7 @@ function History() {
 
     if (user.role === 1) {
       axios
-        .get("http://localhost:3001/borrow", {
+        .get(`${apiUrl}/borrow`, {
           headers: {
             Authorization: token, // <--- ส่ง token ที่คุณได้จาก context
           },
@@ -140,7 +141,7 @@ function History() {
 
   const fetchBorrow = () => {
     axios
-      .get("http://localhost:3001/borrow", {
+      .get(`${apiUrl}/borrow`, {
         headers: {
           Authorization: token, // ✅ เพิ่มตรงนี้
         },
@@ -150,7 +151,7 @@ function History() {
 
   const fetchBorrowMember = (id) => {
     axios
-      .get(`http://localhost:3001/borrow/${id}`, {
+      .get(`${apiUrl}/borrow/${id}`, {
         headers: {
           Authorization: token, // ✅ เพิ่มตรงนี้เหมือนกัน
         },
@@ -192,7 +193,7 @@ function History() {
   }, [showCancelModal, user]);
   const updateStatus = (id, status_name, qty, product_id) => {
     axios
-      .put(`http://localhost:3001/borrow/${id}`, {
+      .put(`${apiUrl}/borrow/${id}`, {
         status_name,
         qty,
         product_id,
@@ -388,6 +389,7 @@ const handleCloseModalReturn = () => {
       "ถูกยกเลิก",
       "คืนไม่ครบ",
       "เลยกำหนดคืน",
+      "คืนไม่ครบ/มีของชำรุด",
     ];
     // const allowedStatuses = ["รอการอนุมัติ", "อนุมัติแล้ว", "ผู้ยืมได้รับของแล้ว", "รับของแล้ว" , "คืนไม่ครบ", "คืนของแล้ว"];
     const matchStatus = allowedStatuses.includes(his.status_name);
@@ -481,7 +483,7 @@ const handleCloseModalReturn = () => {
         // ✅ ถ้าผู้ใช้กดยืนยัน ค่อยส่ง axios
         axios
           .post(
-            "http://localhost:3001/return-detail",
+            `${apiUrl}/return-detail`,
             {
               request_id: currentReturn.request_id,
               product_id: currentReturn.product_id,
@@ -530,7 +532,7 @@ const handleCloseModalReturn = () => {
           });
       }
     });
-    // axios.post("http://localhost:3001/return-detail", {
+    // axios.post(`${apiUrl}/reasons`/return-detail", {
     //   request_id: currentReturn.request_id,
     //   product_id: currentReturn.product_id,
     //   good_qty: parseInt(returnGoodQty),
@@ -633,6 +635,7 @@ const handleCloseModalReturn = () => {
                   </option>
                   <option value="คืนไม่ครบ">คืนไม่ครบ</option>
                   <option value="เลยกำหนดคืน">เลยกำหนดคืน</option>
+                  <option value="คืนไม่ครบ/มีของชำรุด">คืนไม่ครบ/มีของชำรุด</option>
                 </Form.Select>
               </Col>
             </Row>
@@ -803,7 +806,20 @@ const handleCloseModalReturn = () => {
                               >
                                 ตรวจรับของคืน
                               </Button>
-                            )}
+                          )}
+                          {r.status_name === "คืนไม่ครบ/มีของชำรุด" &&
+                            r.quantity !== r.total_return && (
+                              <Button
+                                variant="warning"
+                                className="w-100 my-1"
+                                onClick={() => {
+                                  setCurrentReturn(r);
+                                  setShowReturnModal(true);
+                                }}
+                              >
+                                ตรวจรับของคืน
+                              </Button>
+                          )}
 
                           {r.status_name === "คืนของแล้ว" && (
                             <Button

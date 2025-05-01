@@ -5,6 +5,7 @@ import Navbar from "../Navbar/Navbar";
 import axios from "axios";
 import { AuthContext } from "../../context/authContext";
 import Swal from "sweetalert2";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 function CancelHistory() {
   const [canceledList, setCanceledList] = useState([]);
@@ -17,7 +18,7 @@ function CancelHistory() {
     if (!user || !token) return; // ✅ รอให้ user/token พร้อมก่อน
 
     axios
-      .get("http://localhost:3001/listmembers", {
+      .get(`${apiUrl}/listmembers`, {
         headers: {
           Authorization: token, // ✅ ส่ง token ไปกับ header
         },
@@ -100,7 +101,7 @@ function CancelHistory() {
         };
 
         axios
-          .put(`http://localhost:3001/users/approve/${data.member_id}`, payload)
+          .put(`${apiUrl}/users/approve/${data.member_id}`, payload)
           .then(() => {
             Swal.fire({
               icon: "success",

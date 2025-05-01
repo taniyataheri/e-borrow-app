@@ -5,13 +5,15 @@ import Navbar from "../Navbar/Navbar";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+const apiUrl = import.meta.env.VITE_API_URL;
+
 
 function Category() {
   const [categories, setCategories] = useState([]);
   const [name, setName] = useState("");
 
   const fetchCategories = async () => {
-    const response = await axios.get("http://localhost:3001/categories");
+    const response = await axios.get(`${apiUrl}/categories`);
     setCategories(response.data);
   };
 
@@ -22,7 +24,7 @@ function Category() {
   const addCategory = async () => {
     if (!name.trim()) return;
     try {
-      await axios.post("http://localhost:3001/categories", { name });
+      await axios.post(`${apiUrl}/categories`, { name });
       setName(""); // เคลียร์ช่องกรอก
       fetchCategories(); // รีเฟรชรายการ
       Swal.fire("เพิ่มสำเร็จ!", "ประเภทถูกเพิ่มแล้ว", "success");
@@ -48,7 +50,7 @@ function Category() {
   
     if (newName && newName !== cat.name) {
       try {
-        await axios.put(`http://localhost:3001/categories/${cat.category_id}`, {
+        await axios.put(`${apiUrl}/categories/${cat.category_id}`, {
           name: newName,
         });
         fetchCategories(); // รีโหลดรายการ
@@ -72,7 +74,7 @@ function Category() {
   
     if (confirm.isConfirmed) {
       try {
-        await axios.put(`http://localhost:3001/delete-categories/${id}`);
+        await axios.put(`${apiUrl}/delete-categories/${id}`);
         fetchCategories(); // รีเฟรชรายการ
         Swal.fire("ลบแล้ว!", "ประเภทถูกลบเรียบร้อย", "success");
       } catch (err) {
@@ -135,9 +137,9 @@ function Category() {
                       <Button variant="warning" onClick={() => editCategory(cat)}>
                         Edit
                       </Button>
-                      <Button variant="danger" onClick={() => deleteCategory(cat.category_id)} style={{ marginLeft: "10px" }}>
+                      {/* <Button variant="danger" onClick={() => deleteCategory(cat.category_id)} style={{ marginLeft: "10px" }}>
                         Delete
-                      </Button>
+                      </Button> */}
                     </td>
                   </tr>
                 ))}

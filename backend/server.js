@@ -478,27 +478,51 @@ app.get("/cancel-history", verifyToken, (req, res) => {
 app.get("/borrow", verifyToken, (req, res) => {
   const sql = `
     SELECT
-    b.request_id,
-    b.member_id,
-    b.quantity,
-    b.request_date,
-    b.due_return_date,
-    b.return_date,
-    b.receive_date,
-    b.note,
-    s.status_name,
-    rd.return_id,
-    rd.return_date AS latest_return_date,
-            rd.returned_good,
-            rd.returned_damaged,
-            rd.returned_lost,
-            rd.note AS return_note,
-            (b.quantity - (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0))) AS total,
-            (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)) AS total_return
-    FROM
+        b.request_id,
+        b.member_id,
+        m.full_name,
+        m.first_name,
+        m.last_name,
+        m.team,
+        p.product_id,
+        p.name AS product_name,
+        b.quantity,
+        b.request_date,
+        b.due_return_date,
+        b.return_date,
+        b.receive_date,
+        b.note,
+        p.price_per_item,
+        IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
+        rd.latest_return_date,
+        rd.returned_good,
+        rd.returned_damaged,
+        rd.returned_lost,
+        rd.return_note,
+        (
+          b.quantity - (
+            IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)
+          )
+        ) AS total,
+        (
+          IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)
+        ) AS total_return
+      FROM
         borrow_request b
-    LEFT JOIN borrow_request_status s ON b.request_id = s.request_id
-    LEFT JOIN return_detail rd ON b.request_id = rd.request_id;
+        LEFT JOIN members m ON b.member_id = m.member_id
+        LEFT JOIN product p ON b.product_id = p.product_id
+        LEFT JOIN borrow_request_status s ON b.request_id = s.request_id
+        LEFT JOIN (
+          SELECT 
+            request_id,
+            MAX(return_date) AS latest_return_date,
+            SUM(IFNULL(returned_good, 0)) AS returned_good,
+            SUM(IFNULL(returned_damaged, 0)) AS returned_damaged,
+            SUM(IFNULL(returned_lost, 0)) AS returned_lost,
+            GROUP_CONCAT(note SEPARATOR ', ') AS return_note
+          FROM return_detail
+          GROUP BY request_id
+        ) rd ON b.request_id = rd.request_id;
   `;
 
   db.query(sql, (err, results) => {
@@ -562,37 +586,51 @@ app.get("/borrow", verifyToken, (req, res) => {
         // ถ้ามีการอัพเดทให้แสดงผลข้อมูลทั้งหมดที่เกี่ยวข้อง
         const sql = `
           SELECT
-            b.request_id,
-            b.member_id,
-            m.full_name,
-            m.first_name,
-            m.last_name,
-            m.team,
-            p.product_id,
-            p.name AS product_name,
-            b.quantity,
-            b.request_date,
-            b.due_return_date,
-            b.return_date,
-            b.receive_date,
-            b.note,
-            p.price_per_item,
-            IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
-            rd.return_date AS latest_return_date,
-            rd.returned_good,
-            rd.returned_damaged,
-            rd.returned_lost,
-            rd.note AS return_note,
-            (b.quantity - (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0))) AS total,
-            (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)) AS total_return
-          FROM
-            borrow_request b
-            LEFT JOIN members m ON b.member_id = m.member_id
-            LEFT JOIN product p ON b.product_id = p.product_id
-            LEFT JOIN borrow_request_status s ON b.request_id = s.request_id
-            LEFT JOIN return_detail rd ON b.request_id = rd.request_id
-          ORDER BY
-            b.request_id DESC;
+        b.request_id,
+        b.member_id,
+        m.full_name,
+        m.first_name,
+        m.last_name,
+        m.team,
+        p.product_id,
+        p.name AS product_name,
+        b.quantity,
+        b.request_date,
+        b.due_return_date,
+        b.return_date,
+        b.receive_date,
+        b.note,
+        p.price_per_item,
+        IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
+        rd.latest_return_date,
+        rd.returned_good,
+        rd.returned_damaged,
+        rd.returned_lost,
+        rd.return_note,
+        (
+          b.quantity - (
+            IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)
+          )
+        ) AS total,
+        (
+          IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)
+        ) AS total_return
+      FROM
+        borrow_request b
+        LEFT JOIN members m ON b.member_id = m.member_id
+        LEFT JOIN product p ON b.product_id = p.product_id
+        LEFT JOIN borrow_request_status s ON b.request_id = s.request_id
+        LEFT JOIN (
+          SELECT 
+            request_id,
+            MAX(return_date) AS latest_return_date,
+            SUM(IFNULL(returned_good, 0)) AS returned_good,
+            SUM(IFNULL(returned_damaged, 0)) AS returned_damaged,
+            SUM(IFNULL(returned_lost, 0)) AS returned_lost,
+            GROUP_CONCAT(note SEPARATOR ', ') AS return_note
+          FROM return_detail
+          GROUP BY request_id
+        ) rd ON b.request_id = rd.request_id;
         `;
 
         // ดำเนินการ select ข้อมูล
@@ -620,37 +658,51 @@ app.get("/borrow", verifyToken, (req, res) => {
         // ถ้ามีการอัพเดทให้แสดงผลข้อมูลทั้งหมดที่เกี่ยวข้อง
         const sql = `
           SELECT
-            b.request_id,
-            b.member_id,
-            m.full_name,
-            m.first_name,
-            m.last_name,
-            m.team,
-            p.product_id,
-            p.name AS product_name,
-            b.quantity,
-            b.request_date,
-            b.due_return_date,
-            b.return_date,
-            b.receive_date,
-            b.note,
-            p.price_per_item,
-            IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
-            rd.return_date AS latest_return_date,
-            rd.returned_good,
-            rd.returned_damaged,
-            rd.returned_lost,
-            rd.note AS return_note,
-            (b.quantity - (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0))) AS total,
-            (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)) AS total_return
-          FROM
-            borrow_request b
-            LEFT JOIN members m ON b.member_id = m.member_id
-            LEFT JOIN product p ON b.product_id = p.product_id
-            LEFT JOIN borrow_request_status s ON b.request_id = s.request_id
-            LEFT JOIN return_detail rd ON b.request_id = rd.request_id
-          ORDER BY
-            b.request_id DESC;
+        b.request_id,
+        b.member_id,
+        m.full_name,
+        m.first_name,
+        m.last_name,
+        m.team,
+        p.product_id,
+        p.name AS product_name,
+        b.quantity,
+        b.request_date,
+        b.due_return_date,
+        b.return_date,
+        b.receive_date,
+        b.note,
+        p.price_per_item,
+        IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
+        rd.latest_return_date,
+        rd.returned_good,
+        rd.returned_damaged,
+        rd.returned_lost,
+        rd.return_note,
+        (
+          b.quantity - (
+            IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)
+          )
+        ) AS total,
+        (
+          IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)
+        ) AS total_return
+      FROM
+        borrow_request b
+        LEFT JOIN members m ON b.member_id = m.member_id
+        LEFT JOIN product p ON b.product_id = p.product_id
+        LEFT JOIN borrow_request_status s ON b.request_id = s.request_id
+        LEFT JOIN (
+          SELECT 
+            request_id,
+            MAX(return_date) AS latest_return_date,
+            SUM(IFNULL(returned_good, 0)) AS returned_good,
+            SUM(IFNULL(returned_damaged, 0)) AS returned_damaged,
+            SUM(IFNULL(returned_lost, 0)) AS returned_lost,
+            GROUP_CONCAT(note SEPARATOR ', ') AS return_note
+          FROM return_detail
+          GROUP BY request_id
+        ) rd ON b.request_id = rd.request_id;
         `;
 
         // ดำเนินการ select ข้อมูล
@@ -678,37 +730,51 @@ app.get("/borrow", verifyToken, (req, res) => {
         // ถ้ามีการอัพเดทให้แสดงผลข้อมูลทั้งหมดที่เกี่ยวข้อง
         const sql = `
           SELECT
-            b.request_id,
-            b.member_id,
-            m.full_name,
-            m.first_name,
-            m.last_name,
-            m.team,
-            p.product_id,
-            p.name AS product_name,
-            b.quantity,
-            b.request_date,
-            b.due_return_date,
-            b.return_date,
-            b.receive_date,
-            b.note,
-            p.price_per_item,
-            IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
-            rd.return_date AS latest_return_date,
-            rd.returned_good,
-            rd.returned_damaged,
-            rd.returned_lost,
-            rd.note AS return_note,
-            (b.quantity - (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0))) AS total,
-            (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)) AS total_return
-          FROM
-            borrow_request b
-            LEFT JOIN members m ON b.member_id = m.member_id
-            LEFT JOIN product p ON b.product_id = p.product_id
-            LEFT JOIN borrow_request_status s ON b.request_id = s.request_id
-            LEFT JOIN return_detail rd ON b.request_id = rd.request_id
-          ORDER BY
-            b.request_id DESC;
+        b.request_id,
+        b.member_id,
+        m.full_name,
+        m.first_name,
+        m.last_name,
+        m.team,
+        p.product_id,
+        p.name AS product_name,
+        b.quantity,
+        b.request_date,
+        b.due_return_date,
+        b.return_date,
+        b.receive_date,
+        b.note,
+        p.price_per_item,
+        IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
+        rd.latest_return_date,
+        rd.returned_good,
+        rd.returned_damaged,
+        rd.returned_lost,
+        rd.return_note,
+        (
+          b.quantity - (
+            IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)
+          )
+        ) AS total,
+        (
+          IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)
+        ) AS total_return
+      FROM
+        borrow_request b
+        LEFT JOIN members m ON b.member_id = m.member_id
+        LEFT JOIN product p ON b.product_id = p.product_id
+        LEFT JOIN borrow_request_status s ON b.request_id = s.request_id
+        LEFT JOIN (
+          SELECT 
+            request_id,
+            MAX(return_date) AS latest_return_date,
+            SUM(IFNULL(returned_good, 0)) AS returned_good,
+            SUM(IFNULL(returned_damaged, 0)) AS returned_damaged,
+            SUM(IFNULL(returned_lost, 0)) AS returned_lost,
+            GROUP_CONCAT(note SEPARATOR ', ') AS return_note
+          FROM return_detail
+          GROUP BY request_id
+        ) rd ON b.request_id = rd.request_id;
         `;
 
         // ดำเนินการ select ข้อมูล
@@ -726,37 +792,51 @@ app.get("/borrow", verifyToken, (req, res) => {
       // หากไม่มีข้อมูลที่เกินกำหนด ให้แสดงข้อมูลที่มีอยู่
       const sql = `
         SELECT
-          b.request_id,
-          b.member_id,
-          m.full_name,
-          m.first_name,
-          m.last_name,
-          m.team,
-          p.product_id,
-          p.name AS product_name,
-          b.quantity,
-          b.request_date,
-          b.due_return_date,
-          b.return_date,
-          b.receive_date,
-          b.note,
-          p.price_per_item,
-          IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
-          rd.return_date AS latest_return_date,
-          rd.returned_good,
-          rd.returned_damaged,
-          rd.returned_lost,
-          rd.note AS return_note,
-          (b.quantity - (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0))) AS total,
-          (IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)) AS total_return
-        FROM
-          borrow_request b
-          LEFT JOIN members m ON b.member_id = m.member_id
-          LEFT JOIN product p ON b.product_id = p.product_id
-          LEFT JOIN borrow_request_status s ON b.request_id = s.request_id
-          LEFT JOIN return_detail rd ON b.request_id = rd.request_id
-        ORDER BY
-          b.request_id DESC;
+        b.request_id,
+        b.member_id,
+        m.full_name,
+        m.first_name,
+        m.last_name,
+        m.team,
+        p.product_id,
+        p.name AS product_name,
+        b.quantity,
+        b.request_date,
+        b.due_return_date,
+        b.return_date,
+        b.receive_date,
+        b.note,
+        p.price_per_item,
+        IFNULL(s.status_name, 'รอการอนุมัติ') AS status_name,
+        rd.latest_return_date,
+        rd.returned_good,
+        rd.returned_damaged,
+        rd.returned_lost,
+        rd.return_note,
+        (
+          b.quantity - (
+            IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)
+          )
+        ) AS total,
+        (
+          IFNULL(rd.returned_good, 0) + IFNULL(rd.returned_damaged, 0) + IFNULL(rd.returned_lost, 0)
+        ) AS total_return
+      FROM
+        borrow_request b
+        LEFT JOIN members m ON b.member_id = m.member_id
+        LEFT JOIN product p ON b.product_id = p.product_id
+        LEFT JOIN borrow_request_status s ON b.request_id = s.request_id
+        LEFT JOIN (
+          SELECT 
+            request_id,
+            MAX(return_date) AS latest_return_date,
+            SUM(IFNULL(returned_good, 0)) AS returned_good,
+            SUM(IFNULL(returned_damaged, 0)) AS returned_damaged,
+            SUM(IFNULL(returned_lost, 0)) AS returned_lost,
+            GROUP_CONCAT(note SEPARATOR ', ') AS return_note
+          FROM return_detail
+          GROUP BY request_id
+        ) rd ON b.request_id = rd.request_id;
       `;
 
       // ดำเนินการ select ข้อมูล
@@ -1236,6 +1316,9 @@ app.get("/return-detail/user/:id", (req, res) => {
           rd.*,
           br.product_id,
           p.name AS product_name,
+          m.team,
+          br.quantity,
+          br.receive_date,
           CASE
               WHEN m.full_name IS NOT NULL AND m.full_name != ''
                   THEN m.full_name
@@ -1291,6 +1374,8 @@ app.get("/return-detail", (req, res) => {
           br.product_id,
           p.name AS product_name,
           m.team,
+          br.quantity,
+          br.receive_date,
           CASE
               WHEN m.full_name IS NOT NULL AND m.full_name != ''
                   THEN m.full_name
@@ -1994,25 +2079,36 @@ app.put("/users/approve/:id", (req, res) => {
     }
   );
 });
-
 app.put("/repair/:id", (req, res) => {
   const { id } = req.params;
   const { repair_note, repaired_quantity, product_id } = req.body;
 
+  // แปลง repaired_quantity เป็นตัวเลข
+  const repaired_quantity_number = +repaired_quantity;  // ใช้ + เพื่อแปลงจาก string เป็น number
+
+  console.log("repaired_quantity_number", repaired_quantity_number);
+  // ตรวจสอบว่าค่าที่แปลงแล้วเป็นเลขจริง
+  if (isNaN(repaired_quantity_number) || repaired_quantity_number <= 0) {
+    return res.status(400).json({ message: "จำนวนซ่อมแซมไม่ถูกต้อง" });
+  }
+
   db.beginTransaction((err) => {
     if (err) {
       console.error("Begin transaction error:", err);
-      return res.status(500).json({ message: "เริ่มธุรกรรมล้มเหลว" });
+      return res.status(500).json({ message: err });
     }
 
     const updateReturnDetailQuery = `
       UPDATE return_detail
-      SET repair_note = ?, repaired_quantity = ?,
-      returned_damaged = returned_damaged - ?
+      SET repair_note = ?, 
+          repaired_quantity = repaired_quantity + ?,
+          returned_damaged = returned_damaged - ?, 
+          repair_date = NOW()
       WHERE return_id = ?
     `;
 
-    db.query(updateReturnDetailQuery, [repair_note, repaired_quantity , repaired_quantity, id], (err, result1) => {
+    db.query(updateReturnDetailQuery, [repair_note, repaired_quantity_number, repaired_quantity_number, id], (err, result1) => {
+      console.log("db", db);
       if (err) {
         return db.rollback(() => {
           console.error("Error updating return_detail:", err);
@@ -2032,7 +2128,7 @@ app.put("/repair/:id", (req, res) => {
         WHERE product_id = ?
       `;
 
-      db.query(updateProductQuery, [repaired_quantity, product_id], (err, result2) => {
+      db.query(updateProductQuery, [repaired_quantity_number, product_id], (err, result2) => {
         if (err) {
           return db.rollback(() => {
             console.error("Error updating product:", err);

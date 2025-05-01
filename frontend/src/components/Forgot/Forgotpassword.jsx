@@ -5,6 +5,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import logo from "../../assets/logo.png"; //
 import axios from "axios";
 import Swal from "sweetalert2";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 function forgot() {
   const [email, setEmail] = useState("");
@@ -23,7 +24,7 @@ function forgot() {
     }
   
     try {
-      const response = await axios.post("http://localhost:3001/forgot-password", {
+      const response = await axios.post(`${apiUrl}/forgot-password`, {
         email,
         password,     // อย่าลืม เปลี่ยนเป็น newPassword ตามที่ backend รอ
         Cpassword, // และ confirmPassword ด้วย

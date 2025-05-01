@@ -1,10 +1,22 @@
 import { useState, useContext, useEffect } from "react";
-import { Container, Card, Table, Button, Form, Modal, OverlayTrigger, Tooltip, Row, Col } from "react-bootstrap";
+import {
+  Container,
+  Card,
+  Table,
+  Button,
+  Form,
+  Modal,
+  OverlayTrigger,
+  Tooltip,
+  Row,
+  Col,
+} from "react-bootstrap";
 import { AuthContext } from "../../context/authContext";
 import Navbar from "../Navbar/Navbar";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+const apiUrl = import.meta.env.VITE_API_URL;
 
 function Repair() {
   const { token } = useContext(AuthContext);
@@ -13,14 +25,11 @@ function Repair() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [repairQuantity, setRepairQuantity] = useState(0);
   const [repairComment, setRepairComment] = useState("");
-
-  // const fetchCategories = async () => {
-  //   const response = await axios.get("http://localhost:3001/categories");
-  //   setCategories(response.data);
-  // };
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("");
 
   const fetchReturnDetail = () => {
-    const url = "http://localhost:3001/return-detail";
+    const url = `${apiUrl}/return-detail`;
     // console.log("ข้อมูลที่ได้:", url);
     axios
       .get(url, {
@@ -33,7 +42,7 @@ function Repair() {
     fetchReturnDetail();
   }, []);
   const damagedReturns = returnList
-    .filter((item) => item.status_name === "คืนของแล้ว/มีของชำรุด" || item.status_name === "คืนไม่ครบ/มีของชำรุด")
+    .filter((item) => item.returned_damaged > 0 || item.returned_lost > 0 || item.repaired_quantity !== 0)
     .sort((a, b) => {
       if (a.returned_damaged === 0 && b.returned_damaged !== 0) return 1;
       if (a.returned_damaged !== 0 && b.returned_damaged === 0) return -1;
@@ -42,13 +51,77 @@ function Repair() {
       return dateB - dateA;
     });
 
-  console.log(damagedReturns);
+  const updatedDamagedReturn = damagedReturns.map(item => {
+    if (item.returned_damaged >= 1 && item.returned_lost === 0) {
+      return {
+        ...item,
+        status_show: "รอซ่อมแซม",
+      };
+    } else if(item.returned_damaged === 0 && item.returned_lost === 0) {
+      return {
+        ...item,
+        status_show: "ซ่อมแซมแล้ว",
+      };
+    } else if(item.returned_damaged >= 1 && item.returned_lost >= 1 && item.repaired_quantity !== null) {
+      return {
+        ...item,
+        status_show: "ชำรุด/สูญหาย",
+      };
+    } else if(item.returned_damaged === 0 && item.returned_lost >= 1 && item.repaired_quantity === null) {
+      return {
+        ...item,
+        status_show: "ชำรุด/สูญหาย",
+      };
+    }else if(item.returned_damaged === 0 && item.returned_lost > 0 && item.repaired_quantity !== null) {
+      return {
+        ...item,
+        status_show: "สูญหาย/ซ่อมแล้ว",
+      };
+    }
+  });
+  const repaired = updatedDamagedReturn.filter((rep) => {
+    console.log(rep); // ✅ ตรวจสอบว่าข้อมูลมาครบไหม
+    const allowedStatuses = [
+      "รอซ่อมแซม",
+      "ซ่อมแซมแล้ว",
+      "ชำรุด/สูญหาย",
+      "สูญหาย/ซ่อมแล้ว",
+    ];
+    // const allowedStatuses = ["รอการอนุมัติ", "อนุมัติแล้ว", "ผู้ยืมได้รับของแล้ว", "รับของแล้ว" , "คืนไม่ครบ", "คืนของแล้ว"];
+    const matchStatus = allowedStatuses.includes(rep.status_show);
 
+    const matchFilter = !filter || rep.status_show === filter;
+
+    const matchSearch =
+      rep.product_name?.toLowerCase().includes(search.toLowerCase()) ||
+      rep.received_by_name?.toLowerCase().includes(search.toLowerCase()) ||
+      rep.member_name?.toLowerCase().includes(search.toLowerCase()) ||
+      rep.returned_by_name?.toLowerCase().includes(search.toLowerCase()) ||
+      rep.status_show?.toLowerCase().includes(search.toLowerCase());
+
+    return matchStatus && matchFilter && matchSearch;
+  });
   const handleShowModal = (item) => {
     setSelectedItem(item);
     setShowModal(true);
   };
-
+  const CloseModal = () => {
+    setShowModal(false);
+    setRepairQuantity(0);
+    setRepairComment("");
+  }
+  const formatDDate = (dateStr) => {
+    if (!dateStr) return '-';
+  
+    const date = new Date(dateStr);
+    if (isNaN(date)) return '-'; // ตรวจสอบว่าไม่ใช่วันที่
+  
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear() + 543;
+  
+    return `${day}/${month}/${year}`;
+  };
   const handleUpdateRepair = async () => {
     if (!selectedItem) return;
     if (!repairQuantity || !repairComment) {
@@ -61,7 +134,7 @@ function Repair() {
       return;
     }
     try {
-      await axios.put(`http://localhost:3001/repair/${selectedItem.return_id}`, {
+      await axios.put(`${apiUrl}/repair/${selectedItem.return_id}`, {
         repaired_quantity: repairQuantity,
         repair_note: repairComment,
         product_id: selectedItem.product_id,
@@ -69,6 +142,8 @@ function Repair() {
 
       Swal.fire("สำเร็จ!", "อัปเดตรายการซ่อมเรียบร้อย", "success");
       setShowModal(false);
+      setRepairQuantity(0);
+      setRepairComment("");
       fetchReturnDetail(); // รีโหลดข้อมูลหลังอัปเดต
     } catch (err) {
       Swal.fire("ผิดพลาด", err.message, "error");
@@ -88,66 +163,157 @@ function Repair() {
         <Card>
           <Card.Body>
             <h4 className="text-center mb-3" style={{ color: "#2e7d32" }}>
-              จัดการรายการชำรุด/เสียหาย
+              จัดการรายการชำรุด/สูญหาย
             </h4>
-
-            <div className="d-flex align-items-center flex-wrap gap-3 mb-3">
-              <Form.Group controlId="search" style={{ maxWidth: "400px" }}>
-                <Form.Control
-                  type="text"
-                  placeholder="🔍 ค้นหารายการทรัพย์สิน หรือชื่อผู้ใช้..."
-                  className="form-control"
-                  style={{ width: "350px" }}
-                  onChange={(e) => {
-                    setSearch(e.target.value); // อย่าลืมประกาศ useState สำหรับ search
-                  }}
-                />
-              </Form.Group>
-            </div>
-
+              <Row className="mb-3">
+                <Col md={6}>
+                  <Form.Control
+                    type="text"
+                    placeholder="🔍 ค้นหารายการทรัพย์สิน หรือชื่อผู้ใช้..."
+                    className="form-control"
+                    style={{ width: "350px" }} // ✅ เพิ่มความกว้างที่ต้องการ
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                    }}
+                  />
+                </Col>
+                <Col md={6} className="d-flex justify-content-end">
+                  <Form.Select
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value)}
+                    style={{ width: "250px" }}
+                  >
+                    <option value="">ทั้งหมด</option>
+                    <option value="รอซ่อมแซม">รอซ่อมแซม</option>
+                    <option value="ซ่อมแซมแล้ว">ซ่อมแซมแล้ว</option>
+                    <option value="ชำรุด/สูญหาย">ชำรุด/สูญหาย</option>
+                    <option value="สูญหาย/ซ่อมแล้ว">สูญหาย/ซ่อมแล้ว</option>
+                  </Form.Select>
+                </Col>
+              </Row>
             <Table striped bordered hover responsive>
               <thead>
                 <tr>
                   <th>ลำดับ</th>
                   <th>ชื่อทรัพย์สิน</th>
-                  <th>จำนวนดี</th>
                   <th>จำนวนชำรุด</th>
                   <th>จำนวนสูญหาย</th>
+                  <th>จำนวนที่ซ่อมเสร็จ</th>
                   <th>หมายเหตุ</th>
                   <th>รายละเอียดการซ่อม</th>
                   <th>คืนโดย</th>
                   <th>รับโดย</th>
                   <th>สถานะ</th>
+                  <th>วันที่ส่งซ่อม</th>
+                  <th>วันที่ซ่อม</th>
                   <th>จัดการ</th>
                 </tr>
               </thead>
               <tbody>
-                {damagedReturns.map((item, index) => (
+                {repaired.map((item, index) => (
                   <tr key={item.return_id}>
                     <td>{index + 1}</td>
                     <td>{item.product_name}</td>
-                    <td>{item.returned_good}</td>
                     <td>{item.returned_damaged}</td>
                     <td>{item.returned_lost}</td>
+                    <td>{item.repaired_quantity || "-"}</td>
                     <td>{item.note || "-"}</td>
                     <td>{item.repair_note || "-"}</td>
+                    <td>{item.member_name}</td>
                     <td>{item.returned_by_name}</td>
-                    <td>{item.received_by_name}</td>
-                    {item.returned_damaged === 0 ? (
+                    {item.returned_damaged >= 1 && item.returned_lost === 0 && (
                       <>
-                        <td>ซ่อมแซมหมดแล้ว</td>
                         <td>
-                          <Button variant="warning" disabled onClick={() => handleShowModal(item)}>
+                          <div className="text-center bg-warning" style={{ color: "white" , borderRadius: "100px"}}>
+                            รอซ่อมแซม
+                          </div>
+                        </td>
+                        <td>{formatDDate(item.return_date)}</td>
+                        <td>{formatDDate(item.repair_date)}</td>
+                        <td>
+                          <Button
+                            variant="warning"
+                            onClick={() => handleShowModal(item)}
+                          >
                             อัพเดทสถานะ
                           </Button>
                         </td>
                       </>
-                    ) : (
+                    )}
+                    {item.returned_damaged === 0 && item.returned_lost === 0 && (
                       <>
-                        <td>{item.status_name}</td>
                         <td>
-                          <Button variant="warning" onClick={() => handleShowModal(item)}>
+                          <div className="text-center bg-success" style={{ color: "white" , borderRadius: "100px"}}>
+                            ซ่อมแซมแล้ว
+                          </div>
+                        </td>
+                        <td>{formatDDate(item.return_date)}</td>
+                        <td>{formatDDate(item.repair_date)}</td>
+                        <td>
+                          <Button
+                            variant="warning"
+                            disabled
+                            onClick={() => handleShowModal(item)}
+                          >
                             อัพเดทสถานะ
+                          </Button>
+                        </td>
+                      </>
+                    )}
+                    {item.returned_damaged >= 1 && item.returned_lost >= 1 && item.repaired_quantity !== null   && (
+                      <>
+                        <td>
+                          <div className="text-center bg-danger" style={{ color: "white" , borderRadius: "100px"}}>
+                            ชำรุด/สูญหาย
+                          </div>
+                        </td>
+                        <td>{formatDDate(item.return_date)}</td>
+                        <td>{formatDDate(item.repair_date)}</td>
+                        <td>
+                          <Button
+                            variant="warning"
+                            onClick={() => handleShowModal(item)}
+                          >
+                            อัพเดทสถานะ
+                          </Button>
+                        </td>
+                      </>
+                    )}
+                    {item.returned_damaged === 0 && item.returned_lost >= 1 && item.repaired_quantity === null && (
+                      <>
+                        <td>
+                          <div className="text-center bg-warning" style={{ color: "white" , borderRadius: "100px"}}>
+                            ชำรุด/สูญหาย
+                          </div>
+                        </td>
+                        <td>{formatDDate(item.return_date)}</td>
+                        <td>{formatDDate(item.repair_date)}</td>
+                        <td>
+                          <Button
+                            variant="danger"
+                            disabled
+                          >
+                            ของสูญหาย
+                          </Button>
+                        </td>
+                      </>
+                    )}
+                    { item.returned_damaged === 0 && item.returned_lost > 0 && item.repaired_quantity !== null && (
+                      <>
+                        <td>
+                          <div className="text-center bg-warning" style={{ color: "white" , borderRadius: "100px"}}>
+                            สูญหาย/ซ่อมแล้ว
+                          </div>
+                        </td>
+                        <td>{formatDDate(item.return_date)}</td>
+                        <td>{formatDDate(item.repair_date)}</td>
+                        <td>
+                          <Button
+                            variant="danger"
+                            disabled
+                          >
+                            ของสูญหาย
                           </Button>
                         </td>
                       </>
@@ -196,25 +362,33 @@ function Repair() {
                     // ตรวจสอบให้ไม่เกิน max และ min
                     let value = e.target.value;
                     if (value < 1) value = 1;
-                    if (value > (selectedItem.returned_damaged || 1)) value = selectedItem.returned_damaged || 1;
+                    if (value > (selectedItem.returned_damaged || 1))
+                      value = selectedItem.returned_damaged || 1;
 
                     setRepairQuantity(value); // อัปเดตค่าที่ถูกต้อง
                   }}
                 />
-                <Form.Text muted>มีทั้งหมด {selectedItem.returned_damaged || 0} รายการ</Form.Text>
+                <Form.Text muted>
+                  มีทั้งหมด {selectedItem.returned_damaged || 0} รายการ
+                </Form.Text>
               </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label>
                   <strong>รายละเอียดการซ่อมแซม</strong>
                 </Form.Label>
-                <Form.Control type="text" placeholder="ระบุรายละเอียดการซ่อมแซม" required onChange={(e) => setRepairComment(e.target.value)} />
+                <Form.Control
+                  type="text"
+                  placeholder="ระบุรายละเอียดการซ่อมแซม"
+                  required
+                  onChange={(e) => setRepairComment(e.target.value)}
+                />
               </Form.Group>
               {/* เพิ่มฟอร์มอัพเดทสถานะหากต้องการ */}
             </>
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
+          <Button variant="secondary" onClick={() => CloseModal()}>
             ปิด
           </Button>
           <Button variant="success" onClick={handleUpdateRepair}>
