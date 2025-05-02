@@ -196,7 +196,7 @@ function ReturnHistory() {
                         <td>{r.received_by_name}</td>
                         <td>{r.team}</td>
                         <td>{r.returned_good}</td>
-                        <td>{r.returned_damaged}</td>
+                        <td>{r.returned_damaged_old}</td>
                         <td>{r.returned_lost}</td>
                         <td>{r.quantity}</td>
                         <td>{r.fine_amount?.toLocaleString()}</td>
@@ -227,7 +227,7 @@ function ReturnHistory() {
                         <td>{r.received_by_name}</td>
                         <td>{r.team}</td>
                         <td>{r.returned_good}</td>
-                        <td>{r.returned_damaged}</td>
+                        <td>{r.returned_damaged_old}</td>
                         <td>{r.returned_lost}</td>
                         <td>{r.quantity}</td>
                         <td>{r.fine_amount?.toLocaleString()}</td>
@@ -258,7 +258,7 @@ function ReturnHistory() {
                         <td>{r.received_by_name}</td>
                         <td>{r.team}</td>
                         <td>{r.returned_good}</td>
-                        <td>{r.returned_damaged}</td>
+                        <td>{r.returned_damaged_old}</td>
                         <td>{r.returned_lost}</td>
                         <td>{r.quantity}</td>
                         <td>{r.fine_amount?.toLocaleString()}</td>
@@ -289,7 +289,7 @@ function ReturnHistory() {
                         <td>{r.received_by_name}</td>
                         <td>{r.team}</td>
                         <td>{r.returned_good}</td>
-                        <td>{r.returned_damaged}</td>
+                        <td>{r.returned_damaged_old}</td>
                         <td>{r.returned_lost}</td>
                         <td>{r.quantity}</td>
                         <td>{r.fine_amount?.toLocaleString()}</td>

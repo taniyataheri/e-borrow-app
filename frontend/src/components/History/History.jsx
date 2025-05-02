@@ -508,6 +508,7 @@ const handleCloseModalReturn = () => {
             setReturnDamagedQty(0);
             setReturnLostQty(0);
             setReturnComment("");
+            setSelectedReasonId("");
             setReceiverName("");
             setReturnedName("");
             setCurrentReturn(null);
@@ -999,12 +1000,11 @@ const handleCloseModalReturn = () => {
                       );
 
                       if (selectedId !== "8") {
-                        // ถ้าไม่ใช่อื่นๆ เซ็ต returnComment ทันที
+                        // ถ้าไม่ใช่าอื่นๆ เซ็ต returnComment ทันที
                         setReturnComment(selected ? selected.description : "");
-                      } else {
+                      } 
                         // ถ้าเป็น "อื่นๆ" เคลียร์ ให้ user พิมพ์เอง
                         setReturnComment("");
-                      }
                     }}
                   >
                     <option value="">-- กรุณาเลือกเหตุผล --</option>
@@ -1024,6 +1024,10 @@ const handleCloseModalReturn = () => {
                       placeholder="ระบุหมายเหตุ"
                       value={returnComment}
                       onChange={(e) => setReturnComment(e.target.value)}
+                      onClick={(e) => {
+                        // ถ้ากดที่ช่องกรอก ให้เคลียร์ค่า returnComment
+                        setReturnComment("");
+                      }}
                     />
                   </Form.Group>
                 )}

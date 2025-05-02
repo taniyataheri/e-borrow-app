@@ -2101,13 +2101,14 @@ app.put("/repair/:id", (req, res) => {
     const updateReturnDetailQuery = `
       UPDATE return_detail
       SET repair_note = ?, 
+      returned_damaged_old = returned_damaged_old + ?,
           repaired_quantity = repaired_quantity + ?,
-          returned_damaged = returned_damaged - ?, 
+          returned_damaged = returned_damaged - ?,
           repair_date = NOW()
       WHERE return_id = ?
     `;
 
-    db.query(updateReturnDetailQuery, [repair_note, repaired_quantity_number, repaired_quantity_number, id], (err, result1) => {
+    db.query(updateReturnDetailQuery, [repair_note, repaired_quantity_number, repaired_quantity_number, repaired_quantity_number, id], (err, result1) => {
       console.log("db", db);
       if (err) {
         return db.rollback(() => {

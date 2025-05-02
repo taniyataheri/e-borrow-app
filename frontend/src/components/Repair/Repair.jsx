@@ -67,12 +67,12 @@ function Repair() {
         ...item,
         status_show: "ชำรุด/สูญหาย",
       };
-    } else if(item.returned_damaged === 0 && item.returned_lost >= 1 && item.repaired_quantity === null) {
+    } else if(item.returned_damaged === 0 && item.returned_lost >= 1 && item.repaired_quantity === 0) {
       return {
         ...item,
-        status_show: "ชำรุด/สูญหาย",
+        status_show: "สูญหาย",
       };
-    }else if(item.returned_damaged === 0 && item.returned_lost > 0 && item.repaired_quantity !== null) {
+    }else if(item.returned_damaged === 0 && item.returned_lost > 0 && item.repaired_quantity !== 0) {
       return {
         ...item,
         status_show: "สูญหาย/ซ่อมแล้ว",
@@ -86,6 +86,7 @@ function Repair() {
       "ซ่อมแซมแล้ว",
       "ชำรุด/สูญหาย",
       "สูญหาย/ซ่อมแล้ว",
+      "สูญหาย",
     ];
     // const allowedStatuses = ["รอการอนุมัติ", "อนุมัติแล้ว", "ผู้ยืมได้รับของแล้ว", "รับของแล้ว" , "คืนไม่ครบ", "คืนของแล้ว"];
     const matchStatus = allowedStatuses.includes(rep.status_show);
@@ -189,6 +190,7 @@ function Repair() {
                     <option value="ซ่อมแซมแล้ว">ซ่อมแซมแล้ว</option>
                     <option value="ชำรุด/สูญหาย">ชำรุด/สูญหาย</option>
                     <option value="สูญหาย/ซ่อมแล้ว">สูญหาย/ซ่อมแล้ว</option>
+                    <option value="สูญหาย">สูญหาย</option>
                   </Form.Select>
                 </Col>
               </Row>
@@ -224,11 +226,20 @@ function Repair() {
                     <td>{item.returned_by_name}</td>
                     {item.returned_damaged >= 1 && item.returned_lost === 0 && (
                       <>
-                        <td>
-                          <div className="text-center bg-warning" style={{ color: "white" , borderRadius: "100px"}}>
+                        {/* <td>
+                          <div className="text-center bg-warning" style={{ color: "warning" , borderRadius: "100px"}}>
                             รอซ่อมแซม
                           </div>
-                        </td>
+                        </td> */}
+                        <td
+                        style={{
+                          fontWeight: "500",
+                          color:
+                            "#ffc107",
+                        }}
+                      >
+                        รอซ่อมแซม
+                      </td>
                         <td>{formatDDate(item.return_date)}</td>
                         <td>{formatDDate(item.repair_date)}</td>
                         <td>
@@ -243,11 +254,20 @@ function Repair() {
                     )}
                     {item.returned_damaged === 0 && item.returned_lost === 0 && (
                       <>
-                        <td>
+                        {/* <td>
                           <div className="text-center bg-success" style={{ color: "white" , borderRadius: "100px"}}>
                             ซ่อมแซมแล้ว
                           </div>
-                        </td>
+                        </td> */}
+                        <td
+                        style={{
+                          fontWeight: "500",
+                          color:
+                            "#198754",
+                        }}
+                      >
+                        ซ่อมแซมแล้ว
+                      </td>
                         <td>{formatDDate(item.return_date)}</td>
                         <td>{formatDDate(item.repair_date)}</td>
                         <td>
@@ -263,11 +283,20 @@ function Repair() {
                     )}
                     {item.returned_damaged >= 1 && item.returned_lost >= 1 && item.repaired_quantity !== null   && (
                       <>
-                        <td>
+                        {/* <td>
                           <div className="text-center bg-danger" style={{ color: "white" , borderRadius: "100px"}}>
                             ชำรุด/สูญหาย
                           </div>
-                        </td>
+                        </td> */}
+                        <td
+                        style={{
+                          fontWeight: "500",
+                          color:
+                            "#dc3545",
+                        }}
+                      >
+                        ชำรุด/สูญหาย
+                      </td>
                         <td>{formatDDate(item.return_date)}</td>
                         <td>{formatDDate(item.repair_date)}</td>
                         <td>
@@ -280,13 +309,22 @@ function Repair() {
                         </td>
                       </>
                     )}
-                    {item.returned_damaged === 0 && item.returned_lost >= 1 && item.repaired_quantity === null && (
+                    {item.returned_damaged === 0 && item.returned_lost >= 1 && item.repaired_quantity === 0 && (
                       <>
-                        <td>
+                        {/* <td>
                           <div className="text-center bg-warning" style={{ color: "white" , borderRadius: "100px"}}>
-                            ชำรุด/สูญหาย
+                            สูญหาย
                           </div>
-                        </td>
+                        </td> */}
+                        <td
+                        style={{
+                          fontWeight: "500",
+                          color:
+                            "#0d6efd",
+                        }}
+                      >
+                        สูญหาย
+                      </td>
                         <td>{formatDDate(item.return_date)}</td>
                         <td>{formatDDate(item.repair_date)}</td>
                         <td>
@@ -299,13 +337,22 @@ function Repair() {
                         </td>
                       </>
                     )}
-                    { item.returned_damaged === 0 && item.returned_lost > 0 && item.repaired_quantity !== null && (
+                    { item.returned_damaged === 0 && item.returned_lost > 0 && item.repaired_quantity !== 0 && (
                       <>
-                        <td>
+                        {/* <td>
                           <div className="text-center bg-warning" style={{ color: "white" , borderRadius: "100px"}}>
                             สูญหาย/ซ่อมแล้ว
                           </div>
-                        </td>
+                        </td> */}
+                        <td
+                        style={{
+                          fontWeight: "500",
+                          color:
+                            "#fd7e14",
+                        }}
+                      >
+                        สูญหาย/ซ่อมแล้ว
+                      </td>
                         <td>{formatDDate(item.return_date)}</td>
                         <td>{formatDDate(item.repair_date)}</td>
                         <td>
