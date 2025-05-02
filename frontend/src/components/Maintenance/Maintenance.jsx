@@ -186,7 +186,7 @@ function Maintenance() {
                 <Form.Control type="number" value={repairData.cost} onChange={(e) => setRepairData({ ...repairData, cost: e.target.value })} />
               </Form.Group>
               <Form.Group className="mb-3">
-                <Form.Label>วันที่ซ่อมเสร็จ</Form.Label>
+                <Form.Label>วันที่ซ่อมเสร็จเสร็จ</Form.Label>
                 <Form.Control type="date" value={repairData.repair_date} onChange={(e) => setRepairData({ ...repairData, repair_date: e.target.value })} />
               </Form.Group>
             </Form>

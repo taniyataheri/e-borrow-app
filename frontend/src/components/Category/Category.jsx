@@ -135,7 +135,7 @@ function Category() {
                     <td>{cat.name}</td>
                     <td>
                       <Button variant="warning" onClick={() => editCategory(cat)}>
-                        Edit
+                        แก้ไข
                       </Button>
                       {/* <Button variant="danger" onClick={() => deleteCategory(cat.category_id)} style={{ marginLeft: "10px" }}>
                         Delete

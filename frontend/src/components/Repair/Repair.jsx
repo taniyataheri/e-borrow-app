@@ -206,7 +206,7 @@ function Repair() {
                   <th>รับโดย</th>
                   <th>สถานะ</th>
                   <th>วันที่ส่งซ่อม</th>
-                  <th>วันที่ซ่อม</th>
+                  <th>วันที่ซ่อมเสร็จ</th>
                   <th>จัดการ</th>
                 </tr>
               </thead>
@@ -236,7 +236,7 @@ function Repair() {
                             variant="warning"
                             onClick={() => handleShowModal(item)}
                           >
-                            อัพเดทสถานะ
+                            อัปเดตสถานะ
                           </Button>
                         </td>
                       </>
@@ -256,7 +256,7 @@ function Repair() {
                             disabled
                             onClick={() => handleShowModal(item)}
                           >
-                            อัพเดทสถานะ
+                            อัปเดตสถานะ
                           </Button>
                         </td>
                       </>
@@ -275,7 +275,7 @@ function Repair() {
                             variant="warning"
                             onClick={() => handleShowModal(item)}
                           >
-                            อัพเดทสถานะ
+                            อัปเดตสถานะ
                           </Button>
                         </td>
                       </>
@@ -383,7 +383,7 @@ function Repair() {
                   onChange={(e) => setRepairComment(e.target.value)}
                 />
               </Form.Group>
-              {/* เพิ่มฟอร์มอัพเดทสถานะหากต้องการ */}
+              {/* เพิ่มฟอร์มอัปเดตสถานะหากต้องการ */}
             </>
           )}
         </Modal.Body>

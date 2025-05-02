@@ -573,7 +573,7 @@ app.get("/borrow", verifyToken, (req, res) => {
     // console.log("overReturnedRequests:", overReturnedRequests);
     // return res.json(results);
     if (notReturnedRequests.length > 0) {
-      // อัพเดทสถานะเป็น 'เกินกำหนด' สำหรับรายการที่เกินกำหนด
+      // อัปเดตสถานะเป็น 'เกินกำหนด' สำหรับรายการที่เกินกำหนด
       const overdueDateQuery = `UPDATE borrow_request_status SET status_name = 'เลยกำหนดคืน' WHERE request_id IN (${notReturnedRequests
         .map((r) => r.request_id)
         .join(",")})`;
@@ -583,7 +583,7 @@ app.get("/borrow", verifyToken, (req, res) => {
           return res.status(500).json({ error: "Server error" });
         }
 
-        // ถ้ามีการอัพเดทให้แสดงผลข้อมูลทั้งหมดที่เกี่ยวข้อง
+        // ถ้ามีการอัปเดตให้แสดงผลข้อมูลทั้งหมดที่เกี่ยวข้อง
         const sql = `
           SELECT
         b.request_id,
@@ -645,7 +645,7 @@ app.get("/borrow", verifyToken, (req, res) => {
         });
       });
     } else if (partiallyReturnedOverdueRequests.length > 0) {
-      // อัพเดทสถานะเป็น 'เกินกำหนด' สำหรับรายการที่เกินกำหนด
+      // อัปเดตสถานะเป็น 'เกินกำหนด' สำหรับรายการที่เกินกำหนด
       const overdueDateQuery = `UPDATE borrow_request_status SET status_name = 'คืนไม่ครบและเลยกำหนด' WHERE request_id IN (${partiallyReturnedOverdueRequests
         .map((r) => r.request_id)
         .join(",")})`;
@@ -655,7 +655,7 @@ app.get("/borrow", verifyToken, (req, res) => {
           return res.status(500).json({ error: "Server error" });
         }
 
-        // ถ้ามีการอัพเดทให้แสดงผลข้อมูลทั้งหมดที่เกี่ยวข้อง
+        // ถ้ามีการอัปเดตให้แสดงผลข้อมูลทั้งหมดที่เกี่ยวข้อง
         const sql = `
           SELECT
         b.request_id,
@@ -717,7 +717,7 @@ app.get("/borrow", verifyToken, (req, res) => {
         });
       });
     } else if (overReturnedRequests.length > 0) {
-      // อัพเดทสถานะเป็น 'เกินกำหนด' สำหรับรายการที่เกินกำหนด
+      // อัปเดตสถานะเป็น 'เกินกำหนด' สำหรับรายการที่เกินกำหนด
       const overdueDateQuery = `UPDATE borrow_request_status SET status_name = 'คืนครบแล้วแต่เลยกำหนดคืน' WHERE request_id IN (${overReturnedRequests
         .map((r) => r.request_id)
         .join(",")})`;
@@ -727,7 +727,7 @@ app.get("/borrow", verifyToken, (req, res) => {
           return res.status(500).json({ error: "Server error" });
         }
 
-        // ถ้ามีการอัพเดทให้แสดงผลข้อมูลทั้งหมดที่เกี่ยวข้อง
+        // ถ้ามีการอัปเดตให้แสดงผลข้อมูลทั้งหมดที่เกี่ยวข้อง
         const sql = `
           SELECT
         b.request_id,

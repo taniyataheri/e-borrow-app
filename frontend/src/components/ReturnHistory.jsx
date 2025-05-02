@@ -170,8 +170,8 @@ function ReturnHistory() {
                   <th>สมบูรณ์</th>
                   <th>ชำรุด</th>
                   <th>สูญหาย</th>
-                  {/* <th>จำนวนที่ยืม</th>
-                  <th>จำนวนที่คืน</th> */}
+                  <th>จำนวนที่ยืม</th>
+                 {  /*<th>จำนวนที่คืน</th> */}
                   <th>ค่าปรับ</th>
                   <th>หมายเหตุ</th>
                   <th>ผู้รับคืน</th>
@@ -198,6 +198,7 @@ function ReturnHistory() {
                         <td>{r.returned_good}</td>
                         <td>{r.returned_damaged}</td>
                         <td>{r.returned_lost}</td>
+                        <td>{r.quantity}</td>
                         <td>{r.fine_amount?.toLocaleString()}</td>
                         <td>{r.note || "-"}</td>
                         <td>{r.returned_by_name || "-"}</td>
@@ -228,6 +229,7 @@ function ReturnHistory() {
                         <td>{r.returned_good}</td>
                         <td>{r.returned_damaged}</td>
                         <td>{r.returned_lost}</td>
+                        <td>{r.quantity}</td>
                         <td>{r.fine_amount?.toLocaleString()}</td>
                         <td>{r.note || "-"}</td>
                         <td>{r.returned_by_name || "-"}</td>
@@ -258,6 +260,7 @@ function ReturnHistory() {
                         <td>{r.returned_good}</td>
                         <td>{r.returned_damaged}</td>
                         <td>{r.returned_lost}</td>
+                        <td>{r.quantity}</td>
                         <td>{r.fine_amount?.toLocaleString()}</td>
                         <td>{r.note || "-"}</td>
                         <td>{r.returned_by_name || "-"}</td>
@@ -288,6 +291,7 @@ function ReturnHistory() {
                         <td>{r.returned_good}</td>
                         <td>{r.returned_damaged}</td>
                         <td>{r.returned_lost}</td>
+                        <td>{r.quantity}</td>
                         <td>{r.fine_amount?.toLocaleString()}</td>
                         <td>{r.note || "-"}</td>
                         <td>{r.returned_by_name || "-"}</td>
