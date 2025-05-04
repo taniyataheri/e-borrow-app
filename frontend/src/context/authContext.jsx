@@ -12,7 +12,7 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         if (token) {
-            axios.get("http://localhost:3001/me", { headers: { Authorization: token } })
+            axios.get(`${apiUrl}/me`, { headers: { Authorization: token } })
                 .then((response) => {
                     setUser(response.data.user);
                     localStorage.setItem("user", JSON.stringify(response.data.user)); // ✅ sync user to localStorage
@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
     }, [token]);
 
     const login = (email, password) => {
-        return axios.post("http://localhost:3001/login", { email, password })
+        return axios.post(`${apiUrl}/login`, { email, password })
             .then((response) => {
                 setToken(response.data.token);
                 localStorage.setItem("token", response.data.token);

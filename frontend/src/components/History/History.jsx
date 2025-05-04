@@ -312,7 +312,7 @@ const handleCloseModalReturn = () => {
   const handleCancelRequest = () => {
     if (!cancelTargetId || !cancelReason.trim()) return;
     axios
-      .put(`http://localhost:3001/borrow/${cancelTargetId}/cancel`, {
+      .put(`${apiUrl}/borrow/${cancelTargetId}/cancel`, {
         reason: cancelReason,
         canceled_by:
           user?.full_name && user.full_name.trim() !== ""
@@ -409,7 +409,7 @@ const handleCloseModalReturn = () => {
     
     axios
       .put(
-        `http://localhost:3001/borrow/${requestId}/cancel`,
+        `${apiUrl}/borrow/${requestId}/cancel`,
         {
           cancel_reason: cancelReason,
           canceled_by:

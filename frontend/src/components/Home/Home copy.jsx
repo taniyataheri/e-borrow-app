@@ -114,7 +114,7 @@ function Home() {
   // โหลดขนาดจาก API แค่ครั้งเดียว
   useEffect(() => {
     axios
-      .get("http://localhost:3001/product_sizes")
+      .get(`${apiUrl}/product_sizes`)
       .then((res) => setProductSize(res.data))
       .catch((err) => console.error("โหลดขนาดไม่สำเร็จ", err));
   }, []);
@@ -237,7 +237,7 @@ function Home() {
 
     // ✅ ส่งข้อมูลไป backend
     axios
-      .post("http://localhost:3001/products", {
+      .post(`${apiUrl}/products`, {
         name,
         color,
         qta,
@@ -291,7 +291,7 @@ function Home() {
   const hasNotified = useRef(false);
 
   const fetchBorrow = () => {
-    axios.get("http://localhost:3001/borrow").then((response) => {
+    axios.get(`${apiUrl}/borrow`).then((response) => {
       const pendingBorrows = response.data.filter((item) => item.status_name === "รอการอนุมัติ");
 
       // ดึงค่าจาก sessionStorage
@@ -320,22 +320,22 @@ function Home() {
   };
 
   const fetchProducts = () => {
-    axios.get("http://localhost:3001/products").then((response) => {
+    axios.get(`${apiUrl}/products`).then((response) => {
       setProducts(response.data);
     });
-    axios.get("http://localhost:3001/categories").then((response) => {
+    axios.get(`${apiUrl}/categories`).then((response) => {
       setCategories(response.data);
     });
   };
 
   const deleteProduct = (id) => {
-    axios.delete(`http://localhost:3001/products/${id}`).then(() => {
+    axios.delete(`${apiUrl}/products/${id}`).then(() => {
       fetchProducts();
     });
   };
 
   const updateProduct = (id) => {
-    axios.put(`http://localhost:3001/products/${id}`, { name, color, qta, size, price, category_id, status, image }).then(() => {
+    axios.put(`${apiUrl}/products/${id}`, { name, color, qta, size, price, category_id, status, image }).then(() => {
       fetchProducts();
       setShow(false);
     });
@@ -356,7 +356,7 @@ function Home() {
     console.log("📦 ข้อมูลที่กำลังจะส่ง:", formBorrow);
 
     axios
-      .post("http://localhost:3001/borrow", formBorrow)
+      .post(`${apiUrl}/borrow`, formBorrow)
       .then(() => {
         setShowBorrow(false); // ปิด Modal
         Swal.fire({
@@ -388,7 +388,7 @@ function Home() {
       return;
     }
 
-    axios.post(`http://localhost:3001/maintenance`, formMaintenance).then(() => {
+    axios.post(`${apiUrl}/maintenance`, formMaintenance).then(() => {
       setShowMaintenance(false);
       Swal.fire({
         icon: "success",
