@@ -45,29 +45,31 @@ function ReturnHistory() {
   };
 
   const filteredData = Array.isArray(returnList)
-    ? returnList.filter((r) => {
-        // console.log("return:", r);
-        const totalReturned =
-          r.returned_good + r.returned_damaged + r.returned_lost;
-        const total = r.quantity;
-        const status = r.status_name || "-";
-        const matchTab =
-          activeTab === "all"
-            ? (totalReturned === total) || status === "คืนของแล้ว"
-            : activeTab === "partial"
-            ? r.returned_damaged > 0 || r.returned_lost > 0
-            : activeTab === "unreturned"
-            ? status === "คืนไม่ครบ"
-            : activeTab === "overdue"
-            ? ( status === "คืนไม่ครบและเลยกำหนด" || status === "เลยกำหนดคืน" || status === "คืนครบแล้วแต่เลยกำหนดคืน")
-            : true;
+    ? returnList
+        .filter((r) => {
+          // console.log("return:", r);
+          const totalReturned =
+            r.returned_good + r.returned_damaged + r.returned_lost;
+          const total = r.quantity;
+          const status = r.status_name || "-";
+          const matchTab =
+            activeTab === "all"
+              ? (totalReturned === total) || status === "คืนของแล้ว"
+              : activeTab === "partial"
+              ? r.returned_damaged > 0 || r.returned_lost > 0
+              : activeTab === "unreturned"
+              ? status === "คืนไม่ครบ"
+              : activeTab === "overdue"
+              ? ( status === "คืนไม่ครบและเลยกำหนด" || status === "เลยกำหนดคืน" || status === "คืนครบแล้วแต่เลยกำหนดคืน")
+              : true;
 
-        const searchMatch =
-          r.product_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          r.member_name?.toLowerCase().includes(searchTerm.toLowerCase());
+          const searchMatch =
+            r.product_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.member_name?.toLowerCase().includes(searchTerm.toLowerCase());
 
-        return matchTab && searchMatch;
-      })
+          return matchTab && searchMatch;
+        })
+        .sort((a, b) => b.return_id - a.return_id)
     : [];
   console.log("🔍 filteredData:", filteredData);
 

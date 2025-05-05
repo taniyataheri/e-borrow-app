@@ -51,34 +51,53 @@ function Repair() {
       return dateB - dateA;
     });
 
-  const updatedDamagedReturn = damagedReturns.map(item => {
-    if (item.returned_damaged >= 1 && item.returned_lost === 0) {
-      return {
-        ...item,
-        status_show: "รอซ่อมแซม",
-      };
-    } else if(item.returned_damaged === 0 && item.returned_lost === 0) {
-      return {
-        ...item,
-        status_show: "ซ่อมแซมแล้ว",
-      };
-    } else if(item.returned_damaged >= 1 && item.returned_lost >= 1 && item.repaired_quantity !== null) {
-      return {
-        ...item,
-        status_show: "ชำรุด/สูญหาย",
-      };
-    } else if(item.returned_damaged === 0 && item.returned_lost >= 1 && item.repaired_quantity === 0) {
-      return {
-        ...item,
-        status_show: "สูญหาย",
-      };
-    }else if(item.returned_damaged === 0 && item.returned_lost > 0 && item.repaired_quantity !== 0) {
-      return {
-        ...item,
-        status_show: "สูญหาย/ซ่อมแล้ว",
-      };
-    }
-  });
+    const updatedDamagedReturn = damagedReturns.map(item => {
+      if (item.returned_damaged >= 1 && item.returned_lost === 0 || item.returned_damaged >= 1 && item.returned_lost >= 1 && item.repaired_quantity !== null) {
+        return {
+          ...item,
+          status_show: "รอซ่อมแซม",
+        };
+      } else if(item.returned_damaged === 0 && item.returned_lost === 0 || item.returned_damaged === 0 && item.returned_lost > 0 && item.repaired_quantity !== 0) {
+        return {
+          ...item,
+          status_show: "ซ่อมแซมแล้ว",
+        };
+      } else if(item.returned_damaged === 0 && item.returned_lost >= 1 && item.repaired_quantity === 0 || item.returned_damaged >= 1 && item.returned_lost >= 1 && item.repaired_quantity !== null || item.returned_damaged === 0 && item.returned_lost > 0 && item.repaired_quantity !== 0) {
+        return {
+          ...item,
+          status_show: "สูญหาย",
+        };
+      }
+    });
+    
+  // const updatedDamagedReturn = damagedReturns.map(item => {
+  //   if (item.returned_damaged >= 1 && item.returned_lost === 0) {
+  //     return {
+  //       ...item,
+  //       status_show: "รอซ่อมแซม",
+  //     };
+  //   } else if(item.returned_damaged === 0 && item.returned_lost === 0) {
+  //     return {
+  //       ...item,
+  //       status_show: "ซ่อมแซมแล้ว",
+  //     };
+  //   } else if(item.returned_damaged >= 1 && item.returned_lost >= 1 && item.repaired_quantity !== null) {
+  //     return {
+  //       ...item,
+  //       status_show: "ชำรุด/สูญหาย",
+  //     };
+  //   } else if(item.returned_damaged === 0 && item.returned_lost >= 1 && item.repaired_quantity === 0) {
+  //     return {
+  //       ...item,
+  //       status_show: "สูญหาย",
+  //     };
+  //   }else if(item.returned_damaged === 0 && item.returned_lost > 0 && item.repaired_quantity !== 0) {
+  //     return {
+  //       ...item,
+  //       status_show: "สูญหาย/ซ่อมแล้ว",
+  //     };
+  //   }
+  // });
   const repaired = updatedDamagedReturn.filter((rep) => {
     console.log(rep); // ✅ ตรวจสอบว่าข้อมูลมาครบไหม
     const allowedStatuses = [
@@ -188,8 +207,8 @@ function Repair() {
                     <option value="">ทั้งหมด</option>
                     <option value="รอซ่อมแซม">รอซ่อมแซม</option>
                     <option value="ซ่อมแซมแล้ว">ซ่อมแซมแล้ว</option>
-                    <option value="ชำรุด/สูญหาย">ชำรุด/สูญหาย</option>
-                    <option value="สูญหาย/ซ่อมแล้ว">สูญหาย/ซ่อมแล้ว</option>
+                    {/* <option value="ชำรุด/สูญหาย">ชำรุด/สูญหาย</option>
+                    <option value="สูญหาย/ซ่อมแล้ว">สูญหาย/ซ่อมแล้ว</option> */}
                     <option value="สูญหาย">สูญหาย</option>
                   </Form.Select>
                 </Col>
