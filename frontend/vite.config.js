@@ -10,7 +10,7 @@ export default defineConfig({
     host: true,
     port: 3000,
     allowedHosts: [
-      '4139-2001-fb1-11e-8ab5-dd5a-ae6e-172-f71a.ngrok-free.app'
+      'e-borrow-app-frontend.onrender.com'
     ],
   },
 });
