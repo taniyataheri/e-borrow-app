@@ -6,17 +6,19 @@ const bodyParser = require("body-parser");
 const mysql = require("mysql");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
+const dotenv = require("dotenv")
 const app = express();
 
+dotenv.config()
 app.use(cors());
 app.use(express.json());
 
 const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "church_property_db",
-  port: 3308,
+  host: process.env.DATABASE_HOST,
+  user: process.env.DATABASE_USERNAME,
+  password: process.env.DATABASE_PASSWORD,
+  database: process.env.DATABASE_NAME,
+  port: process.env.DATABASE_PORT,
 });
 
 db.connect((err) => {
